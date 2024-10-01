@@ -2,9 +2,10 @@
 juvenile_survival_rate <- 0.5   # Probability of a juvenile surviving to the next time step
 subadult_survival_rate <- 0.7   # Probability of a subadult surviving to the next time step
 adult_survival_rate <- 0.9      # Probability of an adult surviving to the next time step
-juvenile_to_subadult_rate <- 0.2 # Probability of a juvenile transitioning to subadult
-subadult_to_adult_rate <- 0.2   # Probability of a subadult transitioning to adult
-reproduction_rate <- 2.0        # Number of juveniles produced by each adult
+juvenile_to_subadult_rate <- 1 #0.2 # Probability of a juvenile transitioning to subadult
+subadult_to_adult_rate <- 1 #0.2   # Probability of a subadult transitioning to adult
+reproduction_rate <- 0.19
+reproduction_rate_2 <- 0.03
 carrying_capacity <- 500
 
 #restocking
@@ -34,9 +35,16 @@ adult_population_over_time[1] <- adult_population
 
 # Simulation loop
 for (t in 2:time_steps) {
+  # Alternate reproduction rate based on the timestep (even or odd)
+  if (t %% 2 == 0) {
+    current_reproduction_rate <- reproduction_rate
+  } else {
+    current_reproduction_rate <- reproduction_rate_2
+  }
+  
   # Calculate the number of juveniles, subadults, and adults in the next time step
   total_population <- juvenile_population + subadult_population + adult_population
-  new_juveniles <- adult_population * reproduction_rate * (1 - total_population / carrying_capacity)
+  new_juveniles <- adult_population * current_reproduction_rate * (1 - total_population / carrying_capacity)
   surviving_juveniles <- juvenile_population * juvenile_survival_rate * (1 - juvenile_fishing_rate)
   new_subadults <- juvenile_population * juvenile_to_subadult_rate
   surviving_subadults <- subadult_population * subadult_survival_rate
