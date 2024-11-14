@@ -1,40 +1,49 @@
+library(tidyverse)
+
 # Define parameters
-juvenile_survival_rate <- 1 - (0.429 / 2)   # Probability of a juvenile surviving to the next time step
-subadult_survival_rate <- 1 - (0.429 / 2)   # Probability of a subadult surviving to the next time step
+juvenile_survival_rate <- 1 - ((0.429*2) / 2)   # Probability of a juvenile surviving to the next time step
+subadult_survival_rate <- 1 - ((0.429*1.5) / 2)   # Probability of a subadult surviving to the next time step
 adult_survival_rate <-  1 - (0.429 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
 
 juvenile_to_subadult_rate <- 1 #0.2 # Probability of a juvenile transitioning to subadult
-subadult_to_adult_rate <- 1 #0.2   # Probability of a subadult transitioning to adult
+subadult_to_adult_rate <- 0.5 #0.2   # Probability of a subadult transitioning to adult
 
-reproduction_rate <- 0.6 #0.19
-reproduction_rate_2 <- 0.3 #0.03
+reproduction_rate <- 2 #0.19
+reproduction_rate_2 <- 1.5 #0.03
 
-carrying_capacity <- 50 #g/m2
+carrying_capacity <- 68 #g/m2, in range of Friedlander and Sandin studies
 
 #restocking
 restocked_juveniles <- 0
 
 # Fishing rates
-juvenile_fishing_rate <- 0    # Fraction of juvenile population caught by fishing per time step
-adult_fishing_rate <- 0      # Fraction of adult population caught by fishing per time step
+F_instantaneous <- 0.09
+F_discrete <- 1 - exp(-F_instantaneous)
+F_discrete
 
-# Initial population sizes in g/m2 - just made up values
-juvenile_population <- 20
+juvenile_fishing_rate <- 0 #(0.09/4)/2   # Fraction of juvenile population caught by fishing per time step
+adult_fishing_rate <- F_discrete/2     # Fraction of adult population caught by fishing per time step
+
+# Initial population sizes in g/m2 - made up values
+juvenile_population <- 10
 subadult_population <- 10
-adult_population <- 5
+adult_population <- 10
 
 # Number of time steps to simulate
-time_steps <- 200
+time_steps <- 500
 
 # Vectors to store population sizes over time
 juvenile_population_over_time <- numeric(time_steps)
 subadult_population_over_time <- numeric(time_steps)
 adult_population_over_time <- numeric(time_steps)
+total_population_over_time <- numeric(time_steps)
 
 # Initialize population sizes
 juvenile_population_over_time[1] <- juvenile_population
 subadult_population_over_time[1] <- subadult_population
 adult_population_over_time[1] <- adult_population
+total_population_over_time[1] <- total_population
+
 
 # Simulation loop
 for (t in 2:time_steps) {
@@ -55,100 +64,56 @@ for (t in 2:time_steps) {
   surviving_adults <- adult_population * adult_survival_rate * (1 - adult_fishing_rate)
   
   # Update population sizes
-  juvenile_population <- new_juveniles + surviving_juveniles - new_subadults + restocked_juveniles
-  subadult_population <- new_subadults + surviving_subadults - new_adults
-  adult_population <- new_adults + surviving_adults
+  if (t %% 2 == 0) {
+    juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults + restocked_juveniles)
+  } else {
+    juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
+  }
   
-  # Store population sizes
+  subadult_population <- max(0, new_subadults + surviving_subadults - new_adults)
+  adult_population <- max(0, new_adults + surviving_adults)
+  #Store
   juvenile_population_over_time[t] <- juvenile_population
   subadult_population_over_time[t] <- subadult_population
   adult_population_over_time[t] <- adult_population
+  total_population_over_time[t] <- total_population
 }
 
 # Plot the results
-plot(1:time_steps, juvenile_population_over_time, type = "o", col = "blue", 
-     ylim = c(0, max(juvenile_population_over_time, subadult_population_over_time, adult_population_over_time)), 
-     xlab = "Time", ylab = "Population Size") #main = "Stage-Structured Fish Population Model with Fishing & Restocking"
-lines(1:time_steps, subadult_population_over_time, type = "o", col = "green")
-lines(1:time_steps, adult_population_over_time, type = "o", col = "red")
-legend("topright", legend = c("Juveniles", "Subadults", "Adults"), col = c("blue", "green", "red"), lty = 1)
+#plot(1:time_steps, juvenile_population_over_time, type = "o", col = "blue", 
+#     ylim = c(0, max(juvenile_population_over_time, subadult_population_over_time, adult_population_over_time, total_population_over_time)), 
+#     xlab = "Time", ylab = "Population Size") #main = "Stage-Structured Fish Population Model with Fishing & Restocking"
+#lines(1:time_steps, subadult_population_over_time, type = "o", col = "green")
+#lines(1:time_steps, adult_population_over_time, type = "o", col = "red")
+#lines(1:time_steps, total_population_over_time, type = "o", col = "black")
+#legend("topright", legend = c("Juveniles", "Subadults", "Adults", "Total"), col = c("blue", "green", "red", "black"), lty = 1)
+
+
+population_data <- data.frame(
+  Time = rep(1:time_steps, 4),
+  Population = c(juvenile_population_over_time, subadult_population_over_time, adult_population_over_time, total_population_over_time),
+  Stage = rep(c("Juveniles", "Subadults", "Adults", "Total"), each = time_steps)
+)
+
+
+
+# Create the plot
+ggplot(population_data, aes(x = Time/2, y = Population, color = Stage)) +
+  # Transparent lines and points for raw data
+  geom_line(alpha = 0.3) +
+  #geom_point(alpha = 0.3) +
+  # Solid best fit lines for each stage
+  geom_smooth(se = FALSE, size = 1) +
+  labs(
+    x = "Years",
+    y = bquote("Fish density"~(g/m^2)),
+    color = "Stage",
+    title = "No restocking, no fishing"
+  ) +
+  scale_color_manual(values = c("blue", "green", "red", "black")) +
+  theme_minimal()
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#Version with restocking once a year (instead of every 6 month time step)
-
-# Vectors to store population sizes over time
-juvenile_population_over_time <- numeric(time_steps)
-subadult_population_over_time <- numeric(time_steps)
-adult_population_over_time <- numeric(time_steps)
-
-# Initialize population sizes
-juvenile_population_over_time[1] <- juvenile_population
-subadult_population_over_time[1] <- subadult_population
-adult_population_over_time[1] <- adult_population
-
-# Simulation loop
-for (t in 2:time_steps) {
-  # Alternate reproduction rate based on the timestep (even or odd)
-  if (t %% 2 == 0) {
-    current_reproduction_rate <- reproduction_rate
-  } else {
-    current_reproduction_rate <- reproduction_rate_2
-  }
-  
-  # Calculate the number of juveniles, subadults, and adults in the next time step
-  total_population <- juvenile_population + subadult_population + adult_population
-  new_juveniles <- adult_population * current_reproduction_rate * (1 - total_population / carrying_capacity)
-  surviving_juveniles <- juvenile_population * juvenile_survival_rate * (1 - juvenile_fishing_rate)
-  new_subadults <- juvenile_population * juvenile_to_subadult_rate
-  surviving_subadults <- subadult_population * subadult_survival_rate
-  new_adults <- subadult_population * subadult_to_adult_rate
-  surviving_adults <- adult_population * adult_survival_rate * (1 - adult_fishing_rate)
-  
-  # Update population sizes
-  if (t %% 2 == 0) {
-    # Add restocked juveniles every other timestep (on even timesteps)
-    juvenile_population <- new_juveniles + surviving_juveniles - new_subadults + restocked_juveniles
-  } else {
-    # No restocked juveniles on odd timesteps
-    juvenile_population <- new_juveniles + surviving_juveniles - new_subadults
-  }
-  
-  subadult_population <- new_subadults + surviving_subadults - new_adults
-  adult_population <- new_adults + surviving_adults
-  
-  # Store population sizes
-  juvenile_population_over_time[t] <- juvenile_population
-  subadult_population_over_time[t] <- subadult_population
-  adult_population_over_time[t] <- adult_population
-}
-
-
-plot(1:time_steps, juvenile_population_over_time, type = "o", col = "blue", 
-     ylim = c(0, max(juvenile_population_over_time, subadult_population_over_time, adult_population_over_time)), 
-     xlab = "Time", ylab = "Population Size", main = "Stage-Structured Fish Population Model with Fishing & Restocking")
-lines(1:time_steps, subadult_population_over_time, type = "o", col = "green")
-lines(1:time_steps, adult_population_over_time, type = "o", col = "red")
-legend("topright", legend = c("Juveniles", "Subadults", "Adults"), col = c("blue", "green", "red"), lty = 1)
