@@ -108,7 +108,7 @@ ggplot(population_data, aes(x = Time/2, y = Population, color = Stage)) +
     x = "Years",
     y = bquote("Fish density"~(g/m^2)),
     color = "Stage",
-    title = "No restocking, no fishing"
+    title = "No restocking, Adult F = 0.086"
   ) +
   scale_color_manual(values = c("blue", "green", "red", "black")) +
   theme_minimal()
