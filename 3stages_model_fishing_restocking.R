@@ -28,6 +28,7 @@ adult_fishing_rate <- F_discrete/2     # Fraction of adult population caught by 
 juvenile_population <- 10
 subadult_population <- 10
 adult_population <- 10
+total_population <- juvenile_population + subadult_population + adult_population
 
 # Number of time steps to simulate
 time_steps <- 500
