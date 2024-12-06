@@ -66,12 +66,12 @@ for (t in 2:time_steps) {
   
   # Update population sizes
   if (t %% 2 == 0) {
-    juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults + restocked_juveniles)
+    subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + restocked_juveniles)
   } else {
-    juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
+    subadult_population <- max(0, new_subadults + surviving_subadults - new_adults)
   }
   
-  subadult_population <- max(0, new_subadults + surviving_subadults - new_adults)
+  juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
   adult_population <- max(0, new_adults + surviving_adults)
   #Store
   juvenile_population_over_time[t] <- juvenile_population
