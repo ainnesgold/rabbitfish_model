@@ -19,6 +19,13 @@ time_steps <- 500
 fishing_effort_values <- seq(0, 0.5, by = 0.05)
 restocking_values <- c(0, 1, 3, 5) # Restocking scenarios
 
+#Current fishing for burn in
+F_current_instantaneous <- 0.09
+F_current_discrete <- 1 - exp(-F_current_instantaneous)
+F_current_discrete
+
+F_current_discrete_juv <- 0.01
+
 
 run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_time = 100) {
   juvenile_population <- 10
@@ -31,8 +38,9 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
   for (t in 1:time_steps) {
     if (t <= burn_in_time) {
       # Burn-in period with zero fishing and zero restocking
-      F_adults_current <- 0
-      F_juveniles_current <- 0
+      # Try burn in with "current" fishing
+      F_adults_current <- F_current_discrete #0
+      F_juveniles_current <- F_current_discrete_juv #0
       restocking <- 0
     } else {
       # Post burn-in period with specified fishing and restocking

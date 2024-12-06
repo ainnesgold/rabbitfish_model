@@ -21,7 +21,7 @@ F_instantaneous <- 0.09
 F_discrete <- 1 - exp(-F_instantaneous)
 F_discrete
 
-juvenile_fishing_rate <- 0 #(0.09/4)/2   # Fraction of juvenile population caught by fishing per time step
+juvenile_fishing_rate <- 0.01 #(0.09/4)/2   # Fraction of juvenile population caught by fishing per time step
 adult_fishing_rate <- F_discrete/2     # Fraction of adult population caught by fishing per time step
 
 # Initial population sizes in g/m2 - made up values
@@ -31,7 +31,7 @@ adult_population <- 10
 total_population <- juvenile_population + subadult_population + adult_population
 
 # Number of time steps to simulate
-time_steps <- 500
+time_steps <- 100
 
 # Vectors to store population sizes over time
 juvenile_population_over_time <- numeric(time_steps)
@@ -97,24 +97,62 @@ population_data <- data.frame(
 )
 
 
-
-# Create the plot
 ggplot(population_data, aes(x = Time/2, y = Population, color = Stage)) +
-  # Transparent lines and points for raw data
   geom_line(alpha = 0.3) +
-  #geom_point(alpha = 0.3) +
-  # Solid best fit lines for each stage
   geom_smooth(se = FALSE, size = 1) +
   labs(
     x = "Years",
     y = bquote("Fish density"~(g/m^2)),
     color = "Stage",
-    title = "No restocking, Adult F = 0.086"
+    title = "Burn in period: No restocking, \nhiteng kahlao F = 0.086, mañahak F = 0.01"
   ) +
-  scale_color_manual(values = c("blue", "green", "red", "black")) +
-  theme_minimal()
+  scale_color_manual(
+    values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442"), # Okabe-Ito palette
+    labels = c("Hiteng kahlao (adults)", "Mañahak (juveniles)", "Dagge (subadults)", "Total")
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 18),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
 
 
 
+
+#Relative to total
+# Preprocess the data: add a fraction column
+population_data_relative <- population_data %>%
+  group_by(Time) %>%
+  mutate(Fraction = Population / Population[Stage == "Total"])
+
+# Create the plot
+ggplot(population_data_relative, aes(x = Time/2, y = Fraction, color = Stage)) +
+  # Transparent lines for raw data
+  geom_line(alpha = 0.3) +
+  # Solid best fit lines for each stage
+  geom_smooth(se = FALSE, size = 1) +
+  labs(
+    x = "Years",
+    y = "Fish density (fraction of total population)",
+    color = "Stage",
+    title = "Burn in period: No restocking, \nhiteng kahlao F = 0.086, mañahak F = 0.01"
+  ) +
+  scale_color_manual(
+    values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442"), # Okabe-Ito palette
+    labels = c("Hiteng kahlao (adults)", "Mañahak (juveniles)", "Dagge (subadults)", "Total")
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 18),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
 
 
