@@ -30,7 +30,7 @@ restocked_juveniles = 1
 
 #Current fishing for burn in
 F_current_instantaneous <- 0.09
-F_current_discrete <- 1 - exp(-F_current_instantaneous)
+F_current_discrete <- (1 - exp(-F_current_instantaneous)) / 2
 F_current_discrete_juv <- 0.01
 
 

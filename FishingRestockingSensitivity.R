@@ -20,8 +20,8 @@ fishing_effort_values <- seq(0, 0.5, by = 0.05)
 restocking_values <- c(0, 1, 3, 5) # Restocking scenarios
 
 #Current fishing for burn in
-F_current_instantaneous <- 0.09
-F_current_discrete <- 1 - exp(-F_current_instantaneous)
+F_current_instantaneous <- 0.09 
+F_current_discrete <- (1 - exp(-F_current_instantaneous)) / 2
 F_current_discrete
 
 F_current_discrete_juv <- 0.01
