@@ -139,26 +139,36 @@ restocking_labeller <- function(values) {
   paste("Restocked M =", values)
 }
 
+restocked_juveniles / reference_population
+
+
 # Update the code to use this custom labeller
 ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Population)) +
   geom_tile() +
+  geom_contour(
+    aes(z = Relative_Population), 
+    breaks = 0.5, 
+    color = "black", 
+    linetype = "dashed", 
+    linewidth = 1
+  ) +
   facet_wrap(
     ~Restocking_Mortality, 
     labeller = labeller(Restocking_Mortality = function(values) restocking_labeller(values))
   ) +
   scale_fill_gradientn(
     colors = c("#d73027", "#fee08b", "#1a9850"), # Color-blind friendly palette
-    name = bquote("Relative Population")
+    name = bquote("Biomass relative to"~B[0]),
   ) +
   labs(
     x = "Fishing effort on mañahak",
     y = "Fishing effort on hiteng kahlao",
-    title = "Sensitivity: Fishing effort and restocked fish mortality, restocking = 1g/m²"
+    caption = bquote("Restocking = 2% of"~B[0]),
   ) +
   theme_minimal() +
   theme(
     text = element_text(size = 16),
-    plot.title = element_text(size = 18, face = "bold"),
+    plot.title = element_text(size = 16),
     axis.title = element_text(size = 16),
     axis.text = element_text(size = 14),
     legend.title = element_text(size = 14),

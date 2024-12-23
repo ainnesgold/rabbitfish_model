@@ -104,7 +104,7 @@ ggplot(population_data, aes(x = Time/2, y = Population, color = Stage)) +
     x = "Years",
     y = bquote("Fish density"~(g/m^2)),
     color = "Stage",
-    title = "Burn in period: No restocking, \nhiteng kahlao F = 0.086, mañahak F = 0.01"
+    title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
   ) +
   scale_color_manual(
     values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442"), # Okabe-Ito palette
@@ -139,7 +139,7 @@ ggplot(population_data_relative, aes(x = Time/2, y = Fraction, color = Stage)) +
     x = "Years",
     y = "Fish density (fraction of total population)",
     color = "Stage",
-    title = "Burn in period: No restocking, \nhiteng kahlao F = 0.086, mañahak F = 0.01"
+    title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
   ) +
   scale_color_manual(
     values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442"), # Okabe-Ito palette
