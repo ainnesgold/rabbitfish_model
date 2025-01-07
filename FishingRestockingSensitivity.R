@@ -126,15 +126,27 @@ for (restocked_juveniles in restocking_values) {
   all_results <- bind_rows(all_results, sensitivity_results)
 }
 
-all_results <- all_results %>%
-  mutate(
-    Restocking_Label = paste0(Restocking_Percent, "*'%'~of~B[0]"),
-    Restocking_Percent = as.numeric(Restocking_Percent) # Ensure numeric type
-  ) %>%
-  arrange(Restocking_Percent) %>%
-  mutate(
-    Restocking_Label = factor(Restocking_Label, levels = unique(Restocking_Label)) # Order by percentage
-  )
+# Set Restocking_Percent as a factor with the desired order
+all_results$Restocking_Percent <- factor(all_results$Restocking_Percent, 
+                                         levels = c(0, 2, 6, 10))
+
+# Create labels with the correct expressions for each Restocking_Percent
+all_results$Restocking_Label <- dplyr::case_when(
+  all_results$Restocking_Percent == 0 ~ "0*'%'~of~B[0]~(0~g/m^2)",
+  all_results$Restocking_Percent == 2 ~ "2*'%'~of~B[0]~(1~g/m^2)",
+  all_results$Restocking_Percent == 6 ~ "5*'%'~of~B[0]~(3~g/m^2)",
+  all_results$Restocking_Percent == 10 ~ "10*'%'~of~B[0]~(5~g/m^2)"
+)
+
+# Convert Restocking_Label to a factor and ensure its order aligns with Restocking_Percent
+all_results$Restocking_Label <- factor(all_results$Restocking_Label,
+                                       levels = c("0*'%'~of~B[0]~(0~g/m^2)", 
+                                                  "2*'%'~of~B[0]~(1~g/m^2)", 
+                                                  "5*'%'~of~B[0]~(3~g/m^2)",
+                                                  "10*'%'~of~B[0]~(5~g/m^2)"))
+
+
+
 
 ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Population)) +
   geom_tile() +
@@ -164,7 +176,7 @@ ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Populatio
 
 ##Trying to highlight areas where B0 >= 0.5
 
-ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Population)) +
+ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
   geom_tile() +
   geom_contour(
     aes(z = Relative_Population), 
@@ -179,8 +191,8 @@ ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Populatio
     name = bquote("Biomass relative to"~B[0])
   ) +
   labs(
-    x = "Fishing effort on mañahak",
-    y = "Fishing effort on hiteng kahlao",
+    x = "Annual fishing effort on mañahak",
+    y = "Annual fishing effort on hiteng kahlao",
     title = "Restocking amount"
   ) +
   theme_minimal() +
@@ -197,3 +209,54 @@ ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Populatio
 
 
 
+
+
+
+
+all_results <- all_results %>%
+  mutate(
+    Restocking_Label = paste0(
+      Restocking_Percent, "%~of~B[0]~(", restocked_juveniles, "~g/m^2)"
+    ),
+    Restocking_Percent = as.numeric(Restocking_Percent) # Ensure numeric type
+  ) %>%
+  arrange(Restocking_Percent) %>%
+  mutate(
+    Restocking_Label = factor(Restocking_Label, levels = unique(Restocking_Label)) # Order by percentage
+  )
+
+
+all_results$Restocking_Label <- factor(all_results$Restocking_Label)
+
+ggplot(all_results, aes(x = F_adults, y = Avg_Total_Population, label = Restocking_Label)) +
+  geom_text(aes(label = Restocking_Label), parse = TRUE)
+
+# Plotting
+ggplot(all_results, aes(x = F_juveniles * 2, y = F_adults * 2, fill = Relative_Population)) +
+  geom_tile() +
+  geom_contour(
+    aes(z = Relative_Population),
+    breaks = 0.5,
+    color = "black",
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  facet_wrap(~Restocking_Label, labeller = label_parsed) +
+  scale_fill_gradientn(
+    colors = c("#d73027", "#fee08b", "#1a9850"),
+    name = bquote("Biomass relative to"~B[0])
+  ) +
+  labs(
+    x = "Annual fishing effort on mañahak",
+    y = "Annual fishing effort on hiteng kahlao",
+    title = "Restocking amount"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )

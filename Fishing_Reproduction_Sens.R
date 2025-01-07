@@ -146,7 +146,7 @@ reproduction_labeller <- function(values) {
 restocked_juveniles / reference_population
 
 # Update the code to use this custom labeller
-ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Population)) +
+ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
   geom_tile() +
   geom_contour(
     aes(z = Relative_Population), 
@@ -164,8 +164,8 @@ ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Populatio
     name = bquote("Biomass relative to"~B[0]),
   ) +
   labs(
-    x = "Fishing effort on mañahak",
-    y = "Fishing effort on hiteng kahlao",
+    x = "Annual fishing effort on mañahak",
+    y = "Annual fishing effort on hiteng kahlao",
     caption = bquote("Restocking = 2% of"~B[0]),
   ) +
   theme_minimal() +

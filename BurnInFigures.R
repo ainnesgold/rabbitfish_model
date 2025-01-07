@@ -1,4 +1,5 @@
 library(tidyverse)
+library(ggpubr)
 
 # Define parameters
 juvenile_survival_rate <- 1 - ((0.429*2) / 2)   # Probability of a juvenile surviving to the next time step
@@ -97,18 +98,19 @@ population_data <- data.frame(
 )
 
 
-ggplot(population_data, aes(x = Time/2, y = Population, color = Stage)) +
+burnin_raw <- ggplot(population_data %>% filter(Stage != "Total"), aes(x = Time/2, y = Population, color = Stage)) +
   geom_line(alpha = 0.3) +
   geom_smooth(se = FALSE, size = 1) +
   labs(
     x = "Years",
     y = bquote("Fish density"~(g/m^2)),
-    color = "Stage",
-    title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
+    color = "Stage" ,
+    title = "A."
+    #title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
   ) +
   scale_color_manual(
-    values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442"), # Okabe-Ito palette
-    labels = c("Hiteng kahlao (adults)", "Mañahak (juveniles)", "Dagge (subadults)", "Total")
+    values = c("#E69F00", "#56B4E9", "#009E73"),
+    labels = c("Hiteng kahlao (adults)", "Mañahak (juveniles)", "Dagge (subadults)")
   ) +
   theme_minimal() +
   theme(
@@ -130,7 +132,7 @@ population_data_relative <- population_data %>%
   mutate(Fraction = Population / Population[Stage == "Total"])
 
 # Create the plot
-ggplot(population_data_relative, aes(x = Time/2, y = Fraction, color = Stage)) +
+burnin_rel <- ggplot(population_data_relative %>% filter(Stage != "Total"), aes(x = Time/2, y = Fraction, color = Stage)) +
   # Transparent lines for raw data
   geom_line(alpha = 0.3) +
   # Solid best fit lines for each stage
@@ -139,11 +141,12 @@ ggplot(population_data_relative, aes(x = Time/2, y = Fraction, color = Stage)) +
     x = "Years",
     y = "Fish density (fraction of total population)",
     color = "Stage",
-    title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
+    title = "B."
+    #title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
   ) +
   scale_color_manual(
-    values = c("#E69F00", "#56B4E9", "#009E73", "#F0E442"), # Okabe-Ito palette
-    labels = c("Hiteng kahlao (adults)", "Mañahak (juveniles)", "Dagge (subadults)", "Total")
+    values = c("#E69F00", "#56B4E9", "#009E73"), # Okabe-Ito palette
+    labels = c("Hiteng kahlao (adults)", "Mañahak (juveniles)", "Dagge (subadults)")
   ) +
   theme_minimal() +
   theme(
@@ -156,3 +159,14 @@ ggplot(population_data_relative, aes(x = Time/2, y = Fraction, color = Stage)) +
   )
 
 
+burnin <- ggarrange(burnin_raw, burnin_rel, nrow=1, ncol=2, common.legend = TRUE)
+burnin
+# Annotate with a larger title
+#annotate_figure(
+ # burnin,
+#  top = text_grob(
+#    "Burn in Period: No Restocking\nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year",
+#    size = 16, # Adjust size as needed
+#    face = "bold" # Optional: Make the text bold
+#  )
+#)
