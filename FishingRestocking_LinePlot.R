@@ -223,8 +223,56 @@ ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relative_Population
 
 
 
+##alternative plot
+# Modify the fishing scenario labels by multiplying each number by 2
+subset_fishing_scenarios <- c(
+  "0, 0",
+  "0.1, 0.05",
+  "0.1, 0.1",
+  "0.2, 0.1",
+  "0.2, 0.2",
+  "0.3, 0.15",
+  "0.3, 0.3",
+  "0.4, 0.2",
+  "0.4, 0.4",
+  "0.5, 0.25",
+  "0.5, 0.5"
+)
 
+# Convert the labels into numeric pairs, multiply by 2, and then convert back to string
+subset_fishing_scenarios_modified <- sapply(subset_fishing_scenarios, function(x) {
+  # Split the string into numbers, multiply by 2, and then rejoin as a string
+  nums <- as.numeric(strsplit(x, ",")[[1]]) * 2
+  paste(nums, collapse = ", ")
+})
 
+# Prepare data for line plot, filtered by selected fishing scenarios
+line_data_subset <- line_data %>%
+  filter(Fishing_Scenario %in% subset_fishing_scenarios)
+
+# Create the plot for the subset
+ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relative_Population, color = Fishing_Scenario, group = Fishing_Scenario)) +
+  geom_line(size = 1) +
+  geom_point(data = filter(line_data_subset, Avg_Relative_Population == 0.5), aes(x = Restocking_Percent, y = Avg_Relative_Population), 
+             color = "black", shape = 21, fill = "yellow", size = 3) +
+  scale_color_manual(values = viridis::viridis(length(subset_fishing_scenarios)), 
+                     labels = subset_fishing_scenarios_modified,
+                     name = "Annual fishing effort on \nhiteng kahlao and mañahak") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "red", linewidth = 0.8) +
+  labs(
+    x = bquote("Restocking (% of "~B[0]~")"),
+    y = bquote("Biomass relative to"~B[0]),
+    title = ""
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
 
 
 
