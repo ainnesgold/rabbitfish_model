@@ -3,7 +3,7 @@ library(viridis)
 
 # Parameters
 burn_in_time <- 100  # Define burn-in period of 100 timesteps
-time_steps <- 500 
+time_steps <- 200 
 
 # Parameters
 juvenile_survival_rate <- 1 - ((0.429 * 2) / 2)

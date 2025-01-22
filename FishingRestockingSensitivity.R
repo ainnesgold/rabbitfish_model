@@ -13,11 +13,11 @@ reproduction_rate <- 2
 reproduction_rate_2 <- 1.5
 
 carrying_capacity <- 68
-time_steps <- 500
+time_steps <- 200
 
 # Parameter ranges
 fishing_effort_values <- seq(0, 0.5, by = 0.05)
-restocking_values <- c(0, 1, 3, 5) # Restocking scenarios
+restocking_values <- c(0, 1, 2.5, 5) # Restocking scenarios
 
 #Current fishing for burn in
 F_current_instantaneous <- 0.09 
@@ -128,13 +128,13 @@ for (restocked_juveniles in restocking_values) {
 
 # Set Restocking_Percent as a factor with the desired order
 all_results$Restocking_Percent <- factor(all_results$Restocking_Percent, 
-                                         levels = c(0, 2, 6, 10))
+                                         levels = c(0, 2, 5, 10))
 
 # Create labels with the correct expressions for each Restocking_Percent
 all_results$Restocking_Label <- dplyr::case_when(
   all_results$Restocking_Percent == 0 ~ "0*'%'~of~B[0]~(0~g/m^2)",
   all_results$Restocking_Percent == 2 ~ "2*'%'~of~B[0]~(1~g/m^2)",
-  all_results$Restocking_Percent == 6 ~ "5*'%'~of~B[0]~(3~g/m^2)",
+  all_results$Restocking_Percent == 5 ~ "5*'%'~of~B[0]~(2.5~g/m^2)",
   all_results$Restocking_Percent == 10 ~ "10*'%'~of~B[0]~(5~g/m^2)"
 )
 
@@ -142,7 +142,7 @@ all_results$Restocking_Label <- dplyr::case_when(
 all_results$Restocking_Label <- factor(all_results$Restocking_Label,
                                        levels = c("0*'%'~of~B[0]~(0~g/m^2)", 
                                                   "2*'%'~of~B[0]~(1~g/m^2)", 
-                                                  "5*'%'~of~B[0]~(3~g/m^2)",
+                                                  "5*'%'~of~B[0]~(2.5~g/m^2)",
                                                   "10*'%'~of~B[0]~(5~g/m^2)"))
 
 

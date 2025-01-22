@@ -13,7 +13,7 @@ reproduction_rate <- 2
 reproduction_rate_2 <- 1.5
 
 carrying_capacity <- 68
-time_steps <- 500
+time_steps <- 200
 
 # Parameter ranges
 fishing_effort_values <- seq(0, 0.5, by = 0.05)
