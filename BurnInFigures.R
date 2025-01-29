@@ -2,9 +2,18 @@ library(tidyverse)
 library(ggpubr)
 
 # Define parameters
-juvenile_survival_rate <- 1 - ((0.429*2) / 2)   # Probability of a juvenile surviving to the next time step
-subadult_survival_rate <- 1 - ((0.429*1.5) / 2)   # Probability of a subadult surviving to the next time step
-adult_survival_rate <-  1 - (0.429 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
+#juvenile_survival_rate <- 1 - (0.9 / 2)   # Probability of a juvenile surviving to the next time step
+juvenile_survival_rate <- 1 - (0.99 / 2)   # Probability of a juvenile surviving to the next time step
+#juvenile_survival_rate <- 1 - ((0.429*2) / 2)   # Probability of a juvenile surviving to the next time step
+
+
+#subadult_survival_rate <- 1 - (0.5459 / 2)   # Probability of a subadult surviving to the next time step
+subadult_survival_rate <- 1 - (0.91 / 2)   # Probability of a subadult surviving to the next time step
+#subadult_survival_rate <- 1 - ((0.429*1.5) / 2)   # Probability of a subadult surviving to the next time step
+
+#adult_survival_rate <-  1 - (0.3311 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
+adult_survival_rate <-  1 - (0.75 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
+#adult_survival_rate <-  1 - (0.429 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
 
 juvenile_to_subadult_rate <- 1 #0.2 # Probability of a juvenile transitioning to subadult
 subadult_to_adult_rate <- 0.5 #0.2   # Probability of a subadult transitioning to adult
@@ -103,7 +112,7 @@ burnin_raw <- ggplot(population_data %>% filter(Stage != "Total"), aes(x = Time/
   geom_smooth(se = FALSE, size = 1) +
   labs(
     x = "Years",
-    y = bquote("Fish density"~(g/m^2)),
+    y = bquote("Fish biomass"~(g/m^2)),
     color = "Stage" ,
     title = "A."
     #title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
@@ -139,7 +148,7 @@ burnin_rel <- ggplot(population_data_relative %>% filter(Stage != "Total"), aes(
   geom_smooth(se = FALSE, size = 1) +
   labs(
     x = "Years",
-    y = "Fish density (fraction of total population)",
+    y = "Fish biomass (fraction of total population)",
     color = "Stage",
     title = "B."
     #title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
