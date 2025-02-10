@@ -2,18 +2,14 @@ library(tidyverse)
 library(ggpubr)
 
 # Define parameters
-#juvenile_survival_rate <- 1 - (0.9 / 2)   # Probability of a juvenile surviving to the next time step
-juvenile_survival_rate <- 1 - (0.99 / 2)   # Probability of a juvenile surviving to the next time step
-#juvenile_survival_rate <- 1 - ((0.429*2) / 2)   # Probability of a juvenile surviving to the next time step
 
-
-#subadult_survival_rate <- 1 - (0.5459 / 2)   # Probability of a subadult surviving to the next time step
-subadult_survival_rate <- 1 - (0.91 / 2)   # Probability of a subadult surviving to the next time step
-#subadult_survival_rate <- 1 - ((0.429*1.5) / 2)   # Probability of a subadult surviving to the next time step
-
-#adult_survival_rate <-  1 - (0.3311 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
-adult_survival_rate <-  1 - (0.75 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
-#adult_survival_rate <-  1 - (0.429 / 2)  # 0.429 is the annual mortality, divided in 2 for 6 months time steps - Probability of an adult surviving to the next time step
+#mortality
+juvenile_mortality <- 0.9 / 2
+subadult_mortality <- 0.54 / 2
+adult_mortality <- 0.33 / 2
+juvenile_survival_rate <- 1 - juvenile_mortality
+subadult_survival_rate <- 1 - subadult_mortality
+adult_survival_rate <-  1 - adult_mortality
 
 juvenile_to_subadult_rate <- 1 #0.2 # Probability of a juvenile transitioning to subadult
 subadult_to_adult_rate <- 0.5 #0.2   # Probability of a subadult transitioning to adult
@@ -170,6 +166,9 @@ burnin_rel <- ggplot(population_data_relative %>% filter(Stage != "Total"), aes(
 
 burnin <- ggarrange(burnin_raw, burnin_rel, nrow=1, ncol=2, common.legend = TRUE)
 burnin
+
+ggsave("~/Desktop/rabbitfish_figure2.png", burnin, width=8, height=6, bg="transparent")
+
 # Annotate with a larger title
 #annotate_figure(
  # burnin,

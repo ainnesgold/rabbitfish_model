@@ -2,9 +2,16 @@ library(tidyverse)
 library(viridis)
 
 # Parameters
-juvenile_survival_rate <- 1 - ((0.429 * 2) / 2)
-subadult_survival_rate <- 1 - ((0.429 * 1.5) / 2)
-adult_survival_rate <- 1 - (0.429 / 2)
+#juvenile_survival_rate <- 1 - ((0.429 * 2) / 2)
+#subadult_survival_rate <- 1 - ((0.429 * 1.5) / 2)
+#adult_survival_rate <- 1 - (0.429 / 2)
+#mortality
+juvenile_mortality <- 0.9 / 2
+subadult_mortality <- 0.54 / 2
+adult_mortality <- 0.33 / 2
+juvenile_survival_rate <- 1 - juvenile_mortality
+subadult_survival_rate <- 1 - subadult_mortality
+adult_survival_rate <-  1 - adult_mortality
 
 juvenile_to_subadult_rate <- 1
 subadult_to_adult_rate <- 0.5
@@ -17,7 +24,7 @@ time_steps <- 200
 
 # Parameter ranges
 fishing_effort_values <- seq(0, 0.5, by = 0.05)
-restocking_values <- c(0, 1, 2.5, 5) # Restocking scenarios
+restocking_values <- c(0, 1, 3, 5.5) # Restocking scenarios
 
 #Current fishing for burn in
 F_current_instantaneous <- 0.09 
@@ -167,16 +174,16 @@ ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Populatio
 all_results$Restocking_Label <- dplyr::case_when(
   all_results$Restocking_Percent == 0 ~ "0*'%'~of~B[0]~(0~g/m^2)",
   all_results$Restocking_Percent == 2 ~ "2*'%'~of~B[0]~(1~g/m^2)",
-  all_results$Restocking_Percent == 5 ~ "5*'%'~of~B[0]~(2.5~g/m^2)",
-  all_results$Restocking_Percent == 10 ~ "10*'%'~of~B[0]~(5~g/m^2)"
+  all_results$Restocking_Percent == 5 ~ "5*'%'~of~B[0]~(3~g/m^2)",
+  all_results$Restocking_Percent == 10 ~ "10*'%'~of~B[0]~(5.5~g/m^2)"
 )
 
 # Convert Restocking_Label to a factor and ensure its order aligns with Restocking_Percent
 all_results$Restocking_Label <- factor(all_results$Restocking_Label,
                                        levels = c("0*'%'~of~B[0]~(0~g/m^2)", 
                                                   "2*'%'~of~B[0]~(1~g/m^2)", 
-                                                  "5*'%'~of~B[0]~(2.5~g/m^2)",
-                                                  "10*'%'~of~B[0]~(5~g/m^2)"))
+                                                  "5*'%'~of~B[0]~(3~g/m^2)",
+                                                  "10*'%'~of~B[0]~(5.5~g/m^2)"))
 
 
 
@@ -210,7 +217,7 @@ ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Populatio
 
 ##Trying to highlight areas where B0 >= 0.5
 
-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
+figure3<- ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
   geom_tile() +
   geom_contour(
     aes(z = Relative_Population), 
@@ -239,58 +246,5 @@ ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Popul
     legend.text = element_text(size = 12)
   )
 
+ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=8, height=8, bg="transparent")
 
-
-
-
-
-
-
-
-all_results <- all_results %>%
-  mutate(
-    Restocking_Label = paste0(
-      Restocking_Percent, "%~of~B[0]~(", restocked_juveniles, "~g/m^2)"
-    ),
-    Restocking_Percent = as.numeric(Restocking_Percent) # Ensure numeric type
-  ) %>%
-  arrange(Restocking_Percent) %>%
-  mutate(
-    Restocking_Label = factor(Restocking_Label, levels = unique(Restocking_Label)) # Order by percentage
-  )
-
-
-all_results$Restocking_Label <- factor(all_results$Restocking_Label)
-
-ggplot(all_results, aes(x = F_adults, y = Avg_Total_Population, label = Restocking_Label)) +
-  geom_text(aes(label = Restocking_Label), parse = TRUE)
-
-# Plotting
-ggplot(all_results, aes(x = F_juveniles * 2, y = F_adults * 2, fill = Relative_Population)) +
-  geom_tile() +
-  geom_contour(
-    aes(z = Relative_Population),
-    breaks = 0.5,
-    color = "black",
-    linetype = "dashed",
-    linewidth = 1
-  ) +
-  facet_wrap(~Restocking_Label, labeller = label_parsed) +
-  scale_fill_gradientn(
-    colors = c("#d73027", "#fee08b", "#1a9850"),
-    name = bquote("Biomass relative to"~B[0])
-  ) +
-  labs(
-    x = "Annual fishing effort on mañahak",
-    y = "Annual fishing effort on hiteng kahlao",
-    title = "Restocking amount"
-  ) +
-  theme_minimal() +
-  theme(
-    text = element_text(size = 16),
-    plot.title = element_text(size = 16, hjust = 0.5),
-    axis.title = element_text(size = 16),
-    axis.text = element_text(size = 14),
-    legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12)
-  )

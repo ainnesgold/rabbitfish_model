@@ -5,10 +5,17 @@ library(viridis)
 burn_in_time <- 100  # Define burn-in period of 100 timesteps
 time_steps <- 200 
 
-# Parameters
-juvenile_survival_rate <- 1 - ((0.429 * 2) / 2)
-subadult_survival_rate <- 1 - ((0.429 * 1.5) / 2)
-adult_survival_rate <- 1 - (0.429 / 2)
+#juvenile_survival_rate <- 1 - ((0.429 * 2) / 2)
+#subadult_survival_rate <- 1 - ((0.429 * 1.5) / 2)
+#adult_survival_rate <- 1 - (0.429 / 2)
+
+#mortality
+juvenile_mortality <- 0.9 / 2
+subadult_mortality <- 0.54 / 2
+adult_mortality <- 0.33 / 2
+juvenile_survival_rate <- 1 - juvenile_mortality
+subadult_survival_rate <- 1 - subadult_mortality
+adult_survival_rate <-  1 - adult_mortality
 
 juvenile_to_subadult_rate <- 1
 subadult_to_adult_rate <- 0.5
@@ -23,7 +30,7 @@ time_steps <- 500
 fishing_effort_values <- seq(0, 0.5, by = 0.05)
 
 # Define the range of restocking mortality rates
-restocking_mortality_rates <- seq(0, 0.8, by = 0.1)
+restocking_mortality_rates <- seq(0, 1, by = 0.2)
 
 #restocking scenario
 restocked_juveniles = 1
@@ -35,8 +42,6 @@ F_current_discrete_juv <- 0.01
 
 
 
-
-# Update run_simulation to include restocking mortality
 run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restocking_mortality_rate, burn_in_time = 100) {
   juvenile_population <- 10
   subadult_population <- 10
@@ -44,18 +49,20 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restockin
   
   # Store population over time
   population_over_time <- numeric(time_steps)
+  # restocked_dagge_values <- numeric(time_steps)  # To store restocked dagge values
   
   for (t in 1:time_steps) {
     if (t <= burn_in_time) {
-      # Burn-in period with burn in fishing and no restocking
-      F_adults_current <- F_current_discrete
-      F_juveniles_current <- F_current_discrete_juv
+      # Burn-in period with zero fishing and zero restocking
+      # Try burn in with "current" fishing
+      F_adults_current <- F_current_discrete #0
+      F_juveniles_current <- F_current_discrete_juv #0
       restocking <- 0
     } else {
       # Post burn-in period with specified fishing and restocking
       F_adults_current <- F_adults
       F_juveniles_current <- F_juveniles
-      restocking <- restocked_juveniles * (1 - restocking_mortality_rate)
+      restocking <- restocked_juveniles
     }
     
     if (t %% 2 == 0) {
@@ -73,22 +80,44 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restockin
     surviving_adults <- adult_population * adult_survival_rate * (1 - F_adults_current)
     
     if (t %% 2 == 0) {
-      subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + restocking)
+      juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults - restocking)
+      restocked_dagge <- restocking + (2.35 * (1 - restocking / carrying_capacity))
+      
+      #restocked_dagge_values[t] <- restocked_dagge  # Store restocked dagge value
+      subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + (restocked_dagge* (1 - restocking_mortality_rate)))
     } else {
+      juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
       subadult_population <- max(0, new_subadults + surviving_subadults - new_adults)
     }
     
-    juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
     adult_population <- max(0, new_adults + surviving_adults)
+    
     # Store total population at each timestep
-    population_over_time[t] <- juvenile_population + subadult_population + adult_population
+    total_population <- juvenile_population + subadult_population + adult_population
+    population_over_time[t] <- total_population 
+    avg_population_last_20 <- mean(population_over_time[(time_steps - 19):time_steps])
+    
   }
   
-  # Return the average of the last 20 timesteps
-  avg_population_last_20 <- mean(population_over_time[(time_steps - 19):time_steps])
-  
+  # Calculate the average restocked dagge for the last 20 timesteps
+  # Return the average of the last 20 timesteps and the average restocked dagge
   return(avg_population_last_20)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Sensitivity analysis loop
 all_results <- data.frame()
@@ -139,11 +168,14 @@ restocking_labeller <- function(values) {
   paste("Restocked M =", values)
 }
 
-restocked_juveniles / reference_population
+
+
+all_results$Restocking_Mortality <- factor(all_results$Restocking_Mortality,
+                                       levels = c("0%", "20%", "40%", "60%", "80%", "100%"))
 
 
 # Update the code to use this custom labeller
-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
+figure6<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
   geom_tile() +
   geom_contour(
     aes(z = Relative_Population), 
@@ -174,6 +206,27 @@ ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Popul
     legend.title = element_text(size = 14),
     legend.text = element_text(size = 12)
   )
+
+
+
+ggsave("~/Desktop/rabbitfish_figure6.png", figure6, width=10, height=6, bg="transparent")
+
+
+
+
+all_results %>% filter(Restocking_Mortality == "100%")
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
