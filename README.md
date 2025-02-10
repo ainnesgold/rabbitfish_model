@@ -8,3 +8,4 @@
 
 #Figure 5 is Feb10_Figure5_Reproduction_Sens.R
 
+#Figure 6 is Feb10_Figure6_RestockingMort_Sens.R
