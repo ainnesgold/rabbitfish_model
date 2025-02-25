@@ -2,10 +2,6 @@ library(tidyverse)
 library(viridis)
 
 # Parameters
-#juvenile_survival_rate <- 1 - ((0.429 * 2) / 2)
-#subadult_survival_rate <- 1 - ((0.429 * 1.5) / 2)
-#adult_survival_rate <- 1 - (0.429 / 2)
-#mortality
 juvenile_mortality <- 0.9 / 2
 subadult_mortality <- 0.54 / 2
 adult_mortality <- 0.33 / 2
@@ -23,7 +19,7 @@ carrying_capacity <- 68
 time_steps <- 200
 
 # Parameter ranges
-fishing_effort_values <- seq(0, 0.5, by = 0.05)
+fishing_effort_values <- seq(0, 0.5, by = 0.01)
 restocking_values <- c(0, 1, 3, 5.5) # Restocking scenarios
 
 #Current fishing for burn in
@@ -186,38 +182,7 @@ all_results$Restocking_Label <- factor(all_results$Restocking_Label,
                                                   "10*'%'~of~B[0]~(5.5~g/m^2)"))
 
 
-
-
-ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Population)) +
-  geom_tile() +
-  facet_wrap(~Restocking_Label, labeller = label_parsed) +
-  scale_fill_gradientn(
-    colors = c("#d73027", "#fee08b", "#1a9850"),
-    name = bquote("Biomass relative to"~B[0])
-  ) +
-  labs(
-    x = "Fishing effort on mañahak",
-    y = "Fishing effort on hiteng kahlao",
-    title = "Restocking amount"
-  ) +
-  theme_minimal() +
-  theme(
-    text = element_text(size = 16),
-    plot.title = element_text(size = 16, hjust = 0.5),
-    axis.title = element_text(size = 16),
-    axis.text = element_text(size = 14),
-    legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12)
-  )
-
-
-
-
-
-
-##Trying to highlight areas where B0 >= 0.5
-
-figure3<- ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
+ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
   geom_tile() +
   geom_contour(
     aes(z = Relative_Population), 
@@ -246,5 +211,38 @@ figure3<- ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Rela
     legend.text = element_text(size = 12)
   )
 
-ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=8, height=8, bg="transparent")
+
+#Zooming in
+
+figure3<-ggplot(all_results %>% filter(F_adults > 0.3), aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
+  geom_tile() +
+  geom_contour(
+    aes(z = Relative_Population), 
+    breaks = 0.5, 
+    color = "black", 
+    linetype = "dashed", 
+    linewidth = 1
+  ) +
+  facet_wrap(~Restocking_Label, labeller = label_parsed) +
+  scale_fill_gradientn(
+    colors = c("#d73027", "#fee08b", "#1a9850"),
+    name = bquote("Biomass relative to"~B[0])
+  ) +
+  labs(
+    x = "Annual fishing effort on mañahak",
+    y = "Annual fishing effort on hiteng kahlao",
+    title = "Restocking amount"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
+
+
+#ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=8, height=8, bg="transparent")
 
