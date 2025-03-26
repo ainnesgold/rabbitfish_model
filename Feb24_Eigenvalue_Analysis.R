@@ -38,6 +38,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
   # Store population over time and eigenvalues
   population_over_time <- numeric(time_steps)
   eigenvalues_over_time <- numeric(time_steps) 
+  restocked_dagge_values <- numeric(time_steps) 
   
   for (t in 1:time_steps) {
     if (t <= burn_in_time) {
@@ -60,8 +61,17 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     new_adults <- subadult_population * subadult_to_adult_rate
     surviving_adults <- adult_population * adult_survival_rate * (1 - F_adults_current)
     
-    juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
-    subadult_population <- max(0, new_subadults + surviving_subadults - new_adults)
+    if (t %% 2 == 0) {
+      juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults - restocking)
+      restocked_dagge <- restocking + (2.35 * (1 - restocking / carrying_capacity))
+      
+      restocked_dagge_values[t] <- restocked_dagge  # Store restocked dagge value
+      subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + restocked_dagge)
+    } else {
+      juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
+      subadult_population <- max(0, new_subadults + surviving_subadults - new_adults)
+    }
+    
     adult_population <- max(0, new_adults + surviving_adults)
     
     # Store total population at each timestep
@@ -70,8 +80,8 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      0, 0, reproduction_rate + (restocking / carrying_capacity),  # Juvenile production
-      juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate, 0, 0,  # Juvenile survival to subadult
+      0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
+      juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
     ), nrow = 3, byrow = TRUE)
     
@@ -129,11 +139,12 @@ for (restocked_juveniles in restocking_values) {
   all_results <- bind_rows(all_results, sensitivity_results)
 }
 
+
 # Create labels with the correct expressions for each Restocking_Percent
 all_results$Restocking_Label <- dplyr::case_when(
   all_results$Restocking_Percent == 0 ~ "0*'%'~of~B[0]~(0~g/m^2)",
   all_results$Restocking_Percent == 2 ~ "2*'%'~of~B[0]~(1~g/m^2)",
-  all_results$Restocking_Percent == 6 ~ "5*'%'~of~B[0]~(3~g/m^2)",
+  all_results$Restocking_Percent == 5 ~ "5*'%'~of~B[0]~(3~g/m^2)",
   all_results$Restocking_Percent == 10 ~ "10*'%'~of~B[0]~(5.5~g/m^2)"
 )
 
@@ -172,6 +183,8 @@ eigen_heatmap<-ggplot(all_results %>% filter(F_adults <=0.3), aes(x = F_juvenile
     legend.title = element_text(size = 14),
     legend.text = element_text(size = 12)
   )
+
+eigen_heatmap
 
 ggsave("~/Desktop/rabbitfish_eigenheatmap.png", eigen_heatmap, width=6, height=6, bg="transparent")
 

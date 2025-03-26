@@ -95,8 +95,8 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, reproduct
     population_over_time[t] <- total_population 
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      0, 0, reproduction_rate + (restocking / carrying_capacity),  # Juvenile production
-      juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate, 0, 0,  # Juvenile survival to subadult
+      0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
+      juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
     ), nrow = 3, byrow = TRUE)
     
@@ -221,10 +221,7 @@ figure5_eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill =
     ~Reproduction_Rate, 
     labeller = labeller(Reproduction_Rate = function(values) reproduction_labeller(values))
   ) +
-  scale_fill_gradientn(
-    colors = c("#d73027", "#fee08b", "#1a9850"), # Color-blind friendly palette
-    name = "Eigenvalue",
-  ) +
+  scale_fill_viridis_c(name = "Dominant Eigenvalue") +
   labs(
     x = "Annual fishing effort on mañahak",
     y = "Annual fishing effort on hiteng kahlao",
