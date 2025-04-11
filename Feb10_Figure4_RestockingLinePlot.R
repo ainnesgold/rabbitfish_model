@@ -159,15 +159,27 @@ line_data <- all_results %>%
 
 
 #alternative plot
+#subset_fishing_scenarios <- c(
+#  "0, 0",
+#  "0, 0.5",
+#  "0.1, 0.25",
+#  "0.15, 0.3",
+#  "0.2, 0.2",
+#  "0.4, 0.4",
+#  "0.5, 0"
+#)
+
+
 subset_fishing_scenarios <- c(
   "0, 0",
   "0, 0.5",
-  "0.1, 0.25",
   "0.15, 0.3",
   "0.2, 0.2",
   "0.4, 0.4",
-  "0.5, 0"
+  "0.5, 0",
+  "0.5, 0.5"
 )
+
 
 # Convert the labels into numeric pairs, multiply by 2, and then convert back to string
 subset_fishing_scenarios_modified <- sapply(subset_fishing_scenarios, function(x) {
@@ -208,7 +220,7 @@ figure4a <- ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relativ
     legend.text = element_text(size = 12),
     legend.key.width = unit(1.5, "cm")  # Adjust legend width if needed
   )
-
+figure4a
 
 #Quantifying differences in fishing effort
 # Calculate sustainable fishing effort for adults
