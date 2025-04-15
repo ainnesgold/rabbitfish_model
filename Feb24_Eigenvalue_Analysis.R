@@ -80,7 +80,8 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
+      #0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
+      - (restocking / carrying_capacity), 0, current_reproduction_rate,  # Juvenile production
       juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
     ), nrow = 3, byrow = TRUE)
@@ -186,7 +187,7 @@ eigen_heatmap<-ggplot(all_results %>% filter(F_adults <=0.3), aes(x = F_juvenile
 
 eigen_heatmap
 
-ggsave("~/Desktop/rabbitfish_eigenheatmap.png", eigen_heatmap, width=6, height=6, bg="transparent")
+#ggsave("~/Desktop/rabbitfish_eigenheatmap.png", eigen_heatmap, width=6, height=6, bg="transparent")
 
 
 #line plot version?
@@ -203,8 +204,8 @@ line_data <- all_results %>%
 subset_fishing_scenarios <- c(
   "0, 0",
   "0, 0.5",
-  "0.15, 0.3",
-  "0.2, 0.2",
+  "0.15, 0.25",
+  "0.2, 0.15",
   "0.4, 0.4",
   "0.5, 0",
   "0.5, 0.5"
@@ -225,14 +226,14 @@ figure4b<-ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Eigenvalu
   geom_line(size = 1.5) +  # Increase line thickness
   scale_color_manual(values = viridis::viridis(length(subset_fishing_scenarios)), 
                      labels = subset_fishing_scenarios_modified,
-                     name = "Annual fishing effort on \nhiteng kahlao and mañahak") +
+                     name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +
   scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "twodash", "longdash", "F1"), 
                         labels = subset_fishing_scenarios_modified,  # Use same labels as color
-                        name = "Annual fishing effort on \nhiteng kahlao and mañahak") +  
+                        name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +  
   geom_hline(yintercept = 1, linetype = "solid", color = "red", linewidth = 1, alpha = 0.5) +  
   labs(
     x = bquote("Restocking (% of "~B[0]~")"),
-    y = "Eigenvalue",
+    y = "Dominant eigenvalue",
     title = ""
   ) +
   ggtitle("B.") +

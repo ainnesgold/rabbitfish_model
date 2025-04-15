@@ -26,7 +26,7 @@ time_steps <- 500
 fishing_effort_values <- seq(0, 0.5, by = 0.05)
 
 # Define the range of restocking mortality rates
-restocking_mortality_rates <- seq(0, 1, by = 0.2)
+restocking_mortality_rates <- c(0, 0.4, 0.8, 1)
 
 #restocking scenario
 restocked_juveniles = 1
@@ -93,7 +93,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restockin
     population_over_time[t] <- total_population 
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
+      - (restocking / carrying_capacity), 0, current_reproduction_rate,  # Juvenile production
       juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
     ), nrow = 3, byrow = TRUE)
@@ -214,7 +214,7 @@ figure6<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relat
 
 figure6
 
-#ggsave("~/Desktop/rabbitfish_figure6.png", figure6, width=10, height=8, bg="transparent")
+#ggsave("~/Desktop/rabbitfish_figure6.png", figure6, width=8, height=6, bg="transparent")
 
 
 fig6eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Avg_Eigenvalue)) +
@@ -247,17 +247,98 @@ fig6eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Avg
   )
 
 
-ggsave("~/Desktop/rabbitfish_figure6_eigenversion.png", fig6eigen, width=10, height=8, bg="transparent")
+#ggsave("~/Desktop/rabbitfish_figure6_eigenversion.png", fig6eigen, width=8, height=6, bg="transparent")
 
 
 
+#COMBO version
+
+
+# Custom labeller function for restocking mortality
 
 
 
+# Update the code to use this custom labeller
+M_biomass<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
+  geom_tile() +
+  geom_contour(
+    aes(z = Relative_Population), 
+    breaks = 0.5, 
+    color = "black", 
+    linetype = "dashed", 
+    linewidth = 1
+  ) +
+  facet_wrap(
+    ~Restocking_Mortality, 
+    labeller = labeller(Restocking_Mortality = function(values) restocking_labeller(values)),
+    nrow=1
+  ) +
+  scale_fill_gradientn(
+    colors = c("#d73027", "#fee08b", "#1a9850"), # Color-blind friendly palette
+    name = bquote("Biomass relative to"~B[0]),
+  ) +
+  labs(
+    x = "Mañahak annual fishing mortality",
+    y = "Hiteng kahlao annual fishing mortality"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
+
+M_biomass
+
+M_eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Avg_Eigenvalue)) +
+  geom_tile() +
+  geom_contour(
+    aes(z = Avg_Eigenvalue), 
+    breaks = 1, 
+    color = "black", 
+    linetype = "dashed", 
+    linewidth = 1
+  ) +
+  facet_wrap(
+    ~Restocking_Mortality, 
+    labeller = labeller(Restocking_Mortality = function(values) restocking_labeller(values)),
+    nrow=1
+  ) +
+  scale_fill_viridis_c(name = "Dominant eigenvalue") +
+  labs(
+    x = "Mañahak annual fishing mortality",
+    y = "Hiteng kahlao annual fishing mortality",
+    caption = bquote("Restocking = 2% of"~B[0]),
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    strip.text = element_blank() 
+  )
+
+M_eigen
+
+figure6combo<-ggarrange(M_biomass + rremove("xlab") + rremove("ylab"), M_eigen + rremove("ylab"), nrow=2)
+
+figure6combo <- annotate_figure(
+  figure6combo,
+  left = text_grob("Hiteng kahlao annual fishing mortality", 
+                   rot = 90, 
+                   size = 16)
+)
 
 
+figure6combo
 
-
+ggsave("~/Desktop/rabbitfish_figure6_combo.png", figure6combo, width=12, height=8, bg="transparent")
 
 
 

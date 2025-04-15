@@ -229,8 +229,8 @@ figure3<-ggplot(all_results %>% filter(F_adults > 0.3), aes(x = F_juveniles*2, y
     name = bquote("Biomass relative to"~B[0])
   ) +
   labs(
-    x = "Annual fishing effort on mañahak",
-    y = "Annual fishing effort on hiteng kahlao",
+    x = " Mañahak annual fishing mortality",
+    y = "Hiteng kahlao annual fishing mortality",
     title = "Restocking amount"
   ) +
   theme_minimal() +
@@ -244,5 +244,5 @@ figure3<-ggplot(all_results %>% filter(F_adults > 0.3), aes(x = F_juveniles*2, y
   )
 
 
-#ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=8, height=8, bg="transparent")
+ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=10, height=8, bg="transparent")
 

@@ -159,22 +159,23 @@ line_data <- all_results %>%
 
 
 #alternative plot
+
+
 #subset_fishing_scenarios <- c(
 #  "0, 0",
 #  "0, 0.5",
-#  "0.1, 0.25",
 #  "0.15, 0.3",
 #  "0.2, 0.2",
 #  "0.4, 0.4",
-#  "0.5, 0"
+#  "0.5, 0",
+#  "0.5, 0.5"
 #)
-
 
 subset_fishing_scenarios <- c(
   "0, 0",
   "0, 0.5",
-  "0.15, 0.3",
-  "0.2, 0.2",
+  "0.15, 0.25",
+  "0.2, 0.15",
   "0.4, 0.4",
   "0.5, 0",
   "0.5, 0.5"
@@ -199,10 +200,10 @@ figure4a <- ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relativ
   geom_line(size = 1.5) +
   scale_color_manual(values = viridis::viridis(length(subset_fishing_scenarios)), 
                      labels = subset_fishing_scenarios_modified,
-                     name = "Annual fishing effort on \nhiteng kahlao and mañahak") +
+                     name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +
   scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "twodash", "longdash", "F1"), 
                         labels = subset_fishing_scenarios_modified,  # Use same labels as color
-                        name = "Annual fishing effort on \nhiteng kahlao and mañahak") +  
+                        name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +  
   geom_hline(yintercept = 0.5, linetype = "solid", color = "red", linewidth = 1, alpha = 0.5) +  
   labs(
     x = bquote("Restocking (% of "~B[0]~")"),

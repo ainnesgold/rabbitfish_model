@@ -25,7 +25,7 @@ fishing_effort_values <- seq(0, 0.5, by = 0.05)
 
 # Define the range of restocking mortality rates
 restocking_mortality_rate <- 0.2
-reproduction_rates <- seq(1, 3.5, by = 0.5)
+reproduction_rates <- c(1, 2, 2.5, 3)
 #reproduction_rates_2 <- reproduction_rates * 0.75
 
 #restocking scenario
@@ -95,7 +95,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, reproduct
     population_over_time[t] <- total_population 
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
+      - (restocking / carrying_capacity), 0, current_reproduction_rate,  # Juvenile production
       juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
     ), nrow = 3, byrow = TRUE)
@@ -191,7 +191,7 @@ figure5<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relat
   labs(
     x = "Annual fishing effort on mañahak",
     y = "Annual fishing effort on hiteng kahlao",
-    caption = bquote("Restocking = 2% of"~B[0]),
+    caption = bquote("Restocking = 2% of"~B[0])
   ) +
   theme_minimal() +
   theme(
@@ -204,7 +204,7 @@ figure5<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relat
   )
 figure5
 
-#ggsave("~/Desktop/rabbitfish_figure5.png", figure5, width=10, height=8, bg="transparent")
+#ggsave("~/Desktop/rabbitfish_figure5.png", figure5, width=8, height=6, bg="transparent")
 
 
 
@@ -225,7 +225,7 @@ figure5_eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill =
   labs(
     x = "Annual fishing effort on mañahak",
     y = "Annual fishing effort on hiteng kahlao",
-    caption = bquote("Restocking = 2% of"~B[0]),
+    caption = bquote("Restocking = 2% of"~B[0])
   ) +
   theme_minimal() +
   theme(
@@ -237,6 +237,100 @@ figure5_eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill =
     legend.text = element_text(size = 12)
   )
 
-ggsave("~/Desktop/rabbitfish_figure5_eigenversion.png", figure5_eigen, width=10, height=8, bg="transparent")
+#ggsave("~/Desktop/rabbitfish_figure5_eigenversion.png", figure5_eigen, width=8, height=6, bg="transparent")
+
+
+
+#combo
+
+# Custom labeller function for restocking mortality
+reproduction_labeller <- function(values) {
+  paste("R =", values)
+}
+
+#restocked_juveniles / reference_population
+
+# Update the code to use this custom labeller
+R_biomass<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
+  geom_tile() +
+  geom_contour(
+    aes(z = Relative_Population), 
+    breaks = 0.5, 
+    color = "black", 
+    linetype = "dashed", 
+    linewidth = 1
+  ) +
+  facet_wrap(
+    ~Reproduction_Rate, 
+    labeller = labeller(Reproduction_Rate = function(values) reproduction_labeller(values)),
+    nrow=1
+  ) +
+  scale_fill_gradientn(
+    colors = c("#d73027", "#fee08b", "#1a9850"), # Color-blind friendly palette
+    name = bquote("Biomass relative to"~B[0]),
+  ) +
+  labs(
+    x = "Mañahak annual fishing mortality",
+    y = "Hiteng kahlao annual fishing mortality"
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
+R_biomass
+
+
+R_eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Avg_Eigenvalue)) +
+  geom_tile() +
+  geom_contour(
+    aes(z = Avg_Eigenvalue), 
+    breaks = 1, 
+    color = "black", 
+    linetype = "dashed", 
+    linewidth = 1
+  ) +
+  facet_wrap(
+    ~Reproduction_Rate, 
+    labeller = labeller(Reproduction_Rate = function(values) reproduction_labeller(values)),
+    nrow=1
+  ) +
+  scale_fill_viridis_c(name = "Dominant eigenvalue") +
+  labs(
+    x = "Mañahak annual fishing mortality",
+    y = "Hiteng kahlao annual fishing mortality",
+    caption = bquote("Restocking = 2% of"~B[0])
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12),
+    strip.text = element_blank() 
+  )
+
+R_eigen
+
+figure5combo<-ggarrange(R_biomass + rremove("xlab") + rremove("ylab"), R_eigen + rremove("ylab"), nrow=2)
+
+figure5combo <- annotate_figure(
+  figure5combo,
+  left = text_grob("Hiteng kahlao annual fishing mortality", 
+                   rot = 90, 
+                   size = 16)
+)
+
+
+figure5combo
+
+ggsave("~/Desktop/rabbitfish_figure5_combo.png", figure5combo, width=12, height=8, bg="transparent")
+
 
 
