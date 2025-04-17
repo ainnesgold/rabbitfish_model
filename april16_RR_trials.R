@@ -1,4 +1,5 @@
 library(ggplot2)
+library(dplyr)
 
 # Parameters
 juvenile_mortality <- 0.9 / 2
@@ -24,23 +25,23 @@ F_current_discrete_juv <- 0.01
 # Parameter ranges
 reproduction_rate_values <- seq(0, 3, by = 0.5)
 restocking_values <- seq(0, 5.5, by = 0.5)
-fishing_scenarios <- expand.grid(F_simulation_adult = c(0, 0.5, 1),
-                                 F_simulation_juv = c(0, 0.5, 1))
 
-# Store results
+# Fishing levels to iterate over
+fishing_levels <- expand.grid(F_simulation_adult = c(0, 0.5, 1),
+                              F_simulation_juv = c(0, 0.5, 1))
+
+# Store results for all simulations
 all_results <- data.frame()
 
-# Loop over fishing scenarios
-for (fs in 1:nrow(fishing_scenarios)) {
-  F_simulation_adult <- fishing_scenarios$F_simulation_adult[fs]
-  F_simulation_juv <- fishing_scenarios$F_simulation_juv[fs]
+# Loop over fishing combinations
+for (f in 1:nrow(fishing_levels)) {
+  F_simulation_adult <- fishing_levels$F_simulation_adult[f]
+  F_simulation_juv <- fishing_levels$F_simulation_juv[f]
   
   results <- expand.grid(reproduction_rate = reproduction_rate_values,
                          restocking = restocking_values)
   results$biomass <- NA
   results$eigenvalue <- NA
-  results$F_adult <- F_simulation_adult
-  results$F_juv <- F_simulation_juv
   
   for (i in 1:nrow(results)) {
     reproduction_rate <- results$reproduction_rate[i]
@@ -111,30 +112,39 @@ for (fs in 1:nrow(fishing_scenarios)) {
     results$eigenvalue[i] <- dominant_eigenvalue
   }
   
+  results$F_simulation_adult <- F_simulation_adult
+  results$F_simulation_juv <- F_simulation_juv
   all_results <- rbind(all_results, results)
 }
 
-# Plot: Biomass faceted by fishing effort
+# Custom facet labeler
+fishing_labeller <- labeller(
+  F_simulation_adult = function(x) paste("Hiteng kahlao f:", x),
+  F_simulation_juv = function(x) paste("Mañahak f:", x)
+)
+
+# Biomass plot
 ggplot(all_results, aes(x = reproduction_rate, y = restocking, fill = biomass)) +
   geom_tile(color = "white") +
   scale_fill_viridis_c() +
-  facet_grid(F_juv ~ F_adult, labeller = label_both) +
-  labs(title = "Biomass under Different Fishing Scenarios",
+  labs(title = "Biomass",
        x = "Reproduction Rate",
        y = "Restocking",
        fill = "Biomass") +
+  facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = fishing_labeller) +
   theme_minimal()
 
-# Plot: Population growth rate (lambda) faceted by fishing effort
+# Lambda plot
 ggplot(all_results, aes(x = reproduction_rate, y = restocking, fill = eigenvalue)) +
   geom_tile(color = "white") +
   scale_fill_viridis_c() +
-  facet_grid(F_juv ~ F_adult, labeller = label_both) +
-  labs(title = "Population Growth Rate (λ) under Different Fishing Scenarios",
+  labs(title = "Population Growth Rate (λ)",
        x = "Reproduction Rate",
        y = "Restocking",
        fill = "λ") +
+  facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = fishing_labeller) +
   theme_minimal()
+
 
 
 
