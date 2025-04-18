@@ -27,8 +27,8 @@ reproduction_rate_values <- seq(0, 3, by = 0.5)
 restocking_values <- seq(0, 5.5, by = 0.5)
 
 # Fishing levels to iterate over
-fishing_levels <- expand.grid(F_simulation_adult = c(0, 0.5, 1),
-                              F_simulation_juv = c(0, 0.5, 1))
+fishing_levels <- expand.grid(F_simulation_adult = c(0, 0.25, 0.5),
+                              F_simulation_juv = c(0, 0.25, 0.5))
 
 # Store results for all simulations
 all_results <- data.frame()
@@ -42,7 +42,7 @@ for (f in 1:nrow(fishing_levels)) {
                          restocking = restocking_values)
   results$biomass <- NA
   results$eigenvalue <- NA
-  
+
   for (i in 1:nrow(results)) {
     reproduction_rate <- results$reproduction_rate[i]
     reproduction_rate_2 <- 0.75 * reproduction_rate
@@ -98,18 +98,23 @@ for (f in 1:nrow(fishing_levels)) {
     
     total_biomass <- juvenile + subadult + adult
     
+    #transition matrix for population stability
     transition_matrix <- matrix(c(
       - (restocking / carrying_capacity), 0, reproduction_rate,
-      juvenile_survival_rate * (1 - F_current_discrete_juv) * juvenile_to_subadult_rate + 
+      juvenile_survival_rate * (1 - F_simulation_juv) * juvenile_to_subadult_rate + 
         (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,
-      0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_current_discrete)
+      0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_simulation_adult)
     ), nrow = 3, byrow = TRUE)
     
     eigenvalues <- eigen(transition_matrix)$values
     dominant_eigenvalue <- max(Re(eigenvalues))
     
+    
+    #Save results
     results$biomass[i] <- mean(total_biomass[(time_steps - 19):time_steps])
     results$eigenvalue[i] <- dominant_eigenvalue
+
+    
   }
   
   results$F_simulation_adult <- F_simulation_adult
@@ -117,34 +122,42 @@ for (f in 1:nrow(fishing_levels)) {
   all_results <- rbind(all_results, results)
 }
 
-# Custom facet labeler
-fishing_labeller <- labeller(
-  F_simulation_adult = function(x) paste("Hiteng kahlao f:", x),
-  F_simulation_juv = function(x) paste("Mañahak f:", x)
+# Convert variables to factors with parsed expression labels
+all_results$F_simulation_adult <- factor(all_results$F_simulation_adult,
+                                         levels = c(0, 0.25, 0.5),
+                                         labels = c("italic(f)[H]==0", "italic(f)[H]==0.5", "italic(f)[H]==1")
 )
 
-# Biomass plot
-ggplot(all_results, aes(x = reproduction_rate, y = restocking, fill = biomass)) +
-  geom_tile(color = "white") +
+all_results$F_simulation_juv <- factor(all_results$F_simulation_juv,
+                                       levels = c(0, 0.25, 0.5),
+                                       labels = c("italic(f)[M]==0", "italic(f)[M]==0.5", "italic(f)[M]==1")
+)
+
+rr_biomass <- ggplot(all_results, aes(x = reproduction_rate, y = restocking, fill = biomass)) +
+  geom_tile() +
   scale_fill_viridis_c() +
-  labs(title = "Biomass",
-       x = "Reproduction Rate",
-       y = "Restocking",
-       fill = "Biomass") +
-  facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = fishing_labeller) +
+  labs(x = "Reproduction rate",
+    y = expression("Restocking (g/m"^2*")"),
+    fill = expression("Biomass (g/m"^2*")")) +
+  facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = label_parsed) +
   theme_minimal()
 
-# Lambda plot
-ggplot(all_results, aes(x = reproduction_rate, y = restocking, fill = eigenvalue)) +
-  geom_tile(color = "white") +
+
+# Eigen plot - stability
+rr_eigen <- ggplot(all_results, aes(x = reproduction_rate, y = restocking, fill = eigenvalue)) +
+  geom_tile() +
   scale_fill_viridis_c() +
-  labs(title = "Population Growth Rate (λ)",
-       x = "Reproduction Rate",
-       y = "Restocking",
+  labs(x = "Reproduction rate",
+       y = expression("Restocking (g/m"^2*")"),
        fill = "λ") +
-  facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = fishing_labeller) +
+  facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = label_parsed) +
   theme_minimal()
 
+
+
+#Saving
+ggsave("~/Desktop/rr_biomass.png", rr_biomass, width=6, height=4, bg="transparent")
+ggsave("~/Desktop/rr_eigen.png", rr_eigen, width=6, height=4, bg="transparent")
 
 
 
