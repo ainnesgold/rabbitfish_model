@@ -9,3 +9,9 @@
 #Figure 5 is Feb10_Figure5_Reproduction_Sens.R
 
 #Figure 6 is Feb10_Figure6_RestockingMort_Sens.R
+
+#New Stable population convergence is April17_Eigenvector.R
+
+#New reproduction x restocking is april16_RR_trials.R
+
+#New transition sensitivity is April22_Eigenvector_v2
