@@ -244,5 +244,41 @@ figure3<-ggplot(all_results %>% filter(F_adults > 0.3), aes(x = F_juveniles*2, y
   )
 
 
-ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=10, height=8, bg="transparent")
+#ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=10, height=8, bg="transparent")
+
+
+
+
+#trying a different version of the figure
+
+library(ggplot2)
+library(dplyr)
+
+# Filter to avoid zeroes that might confuse contouring
+contour_data <- all_results %>% 
+  filter(Relative_Population >= 0.01)
+
+figure3_alt <- ggplot(contour_data, aes(x = F_juveniles * 2, y = F_adults * 2)) +
+  geom_contour(
+    aes(z = Relative_Population, color = factor(Restocking_Percent), group = Restocking_Percent),
+    breaks = c(0.5),  # or use more like: breaks = c(0.25, 0.5, 0.75)
+    linewidth = 1
+  ) +
+  scale_color_viridis_d(name = bquote("Restocking ("~"% B"["0"]~")")) +
+  labs(
+    x = "Mañahak annual fishing mortality",
+    y = "Hiteng kahlao annual fishing mortality",
+    title = bquote("Maximum fishing mortality that sustains 50%"~B[0])
+  ) +
+  theme_minimal() +
+  theme(
+    text = element_text(size = 16),
+    plot.title = element_text(size = 16, hjust = 0.5),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
+
+ggsave("~/Desktop/rabbitfish_figure3_alt.png", figure3_alt, width=7, height=6, bg="transparent")
 
