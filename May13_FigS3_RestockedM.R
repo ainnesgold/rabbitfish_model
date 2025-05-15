@@ -23,7 +23,7 @@ carrying_capacity <- 68
 time_steps <- 500
 
 # Parameter ranges
-fishing_effort_values <- seq(0, 0.5, by = 0.05)
+fishing_effort_values <- seq(0, 0.5, by = 0.01)
 
 # Define the range of restocking mortality rates
 restocking_mortality_rates <- c(0, 0.4, 0.8, 1)
@@ -279,7 +279,8 @@ M_biomass<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Rel
   ) +
   labs(
     x = "Mañahak annual fishing mortality",
-    y = "Hiteng kahlao annual fishing mortality"
+    y = "Hiteng kahlao annual fishing mortality",
+    title = "A."
   ) +
   theme_minimal() +
   theme(
@@ -312,6 +313,7 @@ M_eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Avg_E
     x = "Mañahak annual fishing mortality",
     y = "Hiteng kahlao annual fishing mortality",
     caption = bquote("Restocking = 2% of"~B[0]),
+    title = "B."
   ) +
   theme_minimal() +
   theme(
@@ -326,19 +328,19 @@ M_eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Avg_E
 
 M_eigen
 
-figure6combo<-ggarrange(M_biomass + rremove("xlab") + rremove("ylab"), M_eigen + rremove("ylab"), nrow=2)
+figures3combo<-ggarrange(M_biomass + rremove("xlab") + rremove("ylab"), M_eigen + rremove("ylab"), nrow=2)
 
-figure6combo <- annotate_figure(
-  figure6combo,
+figures3combo <- annotate_figure(
+  figures3combo,
   left = text_grob("Hiteng kahlao annual fishing mortality", 
                    rot = 90, 
                    size = 16)
 )
 
 
-figure6combo
+figures3combo
 
-ggsave("~/Desktop/rabbitfish_figure6_combo.png", figure6combo, width=12, height=8, bg="transparent")
+ggsave("~/Desktop/figures3.png", figures3combo, width=12, height=8, bg="transparent")
 
 
 

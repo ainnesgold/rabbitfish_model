@@ -167,7 +167,7 @@ burnin_rel <- ggplot(population_data_relative %>% filter(Stage != "Total"), aes(
 burnin <- ggarrange(burnin_raw, burnin_rel, nrow=1, ncol=2, common.legend = TRUE)
 burnin
 
-ggsave("~/Desktop/rabbitfish_figure2.png", burnin, width=8, height=6, bg="transparent")
+ggsave("~/Desktop/figureS1_burnin", burnin, width=8, height=6, bg="transparent")
 
 # Annotate with a larger title
 #annotate_figure(

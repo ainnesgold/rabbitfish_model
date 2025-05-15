@@ -1,17 +1,19 @@
 # rabbitfish_model
 
-#Figure 2 burn in figure is BurnInFigures.R
+#Figure 2: May13_Fig2_SSD.R
 
-#Figure 3 is Feb10_Fig3_ResotckingFishHeatMap.R
+#Figure 3: May13_Fig3_Transitions.R
 
-#Figure 4 line plot and Table 1 are Feb10_Figure4_RestockingLinePlot.R
+#Figure 4: May13_Fig4_Heatmap.R
 
-#Figure 5 is Feb10_Figure5_Reproduction_Sens.R
+#Figure 5: May13_Fig5_Lineplot.R
 
-#Figure 6 is Feb10_Figure6_RestockingMort_Sens.R
+#Figure 6: May13_Fig6_Reproduction.R
 
-#New Stable population convergence is April17_Eigenvector.R
+#Figure S1: Burninfigures.R
 
-#New reproduction x restocking is april16_RR_trials.R
+#Figure S2: May13_Fig6_Reproduction.R
 
-#New transition sensitivity is April22_Eigenvector_v2
+#Figure S3: May13_FigS3_RestockingM.R
+
+#Table 1: May13_Fig5_Lineplot.R

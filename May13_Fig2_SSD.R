@@ -238,7 +238,7 @@ stabledist <- all_results_long %>%
             position = position_stack(vjust = 0.5),
             size = 3, color = "black") +
   facet_grid(F_juveniles ~ F_adults, labeller = label_parsed) +
-  labs(x = bquote("Restocking (% of "~B[0]~")"), y = "Stable population convergence",
+  labs(x = bquote("Restocking (% of "~B[0]~")"), y = "Stable stage distribution",
        fill = "Life stage") +
   theme_minimal() +
   theme(strip.text = element_text(face = "italic")) +
@@ -252,7 +252,7 @@ all_results_long %>%
 
 
 
-#ggsave("~/Desktop/stabledist.png", stabledist, width=8, height=6, bg="transparent")
+ggsave("~/Desktop/Fig2_stabledist.png", stabledist, width=8, height=6, bg="transparent")
 
 
 

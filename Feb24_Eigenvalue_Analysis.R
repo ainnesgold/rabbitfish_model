@@ -220,7 +220,7 @@ subset_fishing_scenarios_modified <- sapply(subset_fishing_scenarios, function(x
 line_data_subset <- line_data %>%
   filter(Fishing_Scenario %in% subset_fishing_scenarios)
 
-figure4b<-ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Eigenvalue, 
+figure5b<-ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Eigenvalue, 
                              color = Fishing_Scenario, linetype = Fishing_Scenario, 
                              group = Fishing_Scenario)) +
   geom_line(size = 1.5) +  # Increase line thickness
@@ -240,7 +240,7 @@ figure4b<-ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Eigenvalu
   theme_minimal() +
   theme(
     text = element_text(size = 16),
-    plot.title = element_text(size = 24),
+    plot.title = element_text(size = 16),
     axis.title = element_text(size = 16),
     axis.text = element_text(size = 14),
     legend.title = element_text(size = 14),
@@ -248,7 +248,6 @@ figure4b<-ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Eigenvalu
     legend.key.width = unit(1.5, "cm")  # Adjust legend width if needed
   )
 
-figure4b
 
 
 

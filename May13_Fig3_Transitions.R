@@ -152,8 +152,8 @@ for (restocked_juveniles in restocking_values) {
       #  "*','~F[M]==", F_juveniles*2
       #)
       scenario = paste0(
-        "F[H]==", F_adults * 2,
-        "*','~F[M]==", F_juveniles * 2
+        "f[H]==", F_adults * 2,
+        "*','~f[M]==", F_juveniles * 2
       )
     )
   
@@ -295,8 +295,8 @@ all_results_long2$outer_products <- map2(all_results_long2$Eigenvector, all_resu
   v2_real <- Re(v2)
   
   # Flip sign of the entire vector if any real part is negative
-  if (any(v1_real < 0)) v1 <- -v1
-  if (any(v2_real < 0)) v2 <- -v2
+  #if (any(v1_real < 0)) v1 <- -v1
+  #if (any(v2_real < 0)) v2 <- -v2
   
   # Optional: Normalize by sum or max value
   # v1 <- v1 / sum(v1)
@@ -361,18 +361,8 @@ ggplot(df_heat, aes(x = Col, y = Row, fill = Value)) +
   theme_minimal()
 
 
-# Loop over outer products and scenarios
-#all_results_long2$scenario <- paste0("Scenario_", seq_len(nrow(all_results_long2)))
-
-library(patchwork)
 
 
-# Example definition for the scenario
-# Assuming `restocked_juveniles`, `F_adults`, and `F_juveniles` are vectors you want to reference in the plot
-
-
-
-# Now use this scenario label in your ggplot
 plots <- map2(
   all_results_long2$outer_products,
   all_results_long2$scenario,
@@ -400,7 +390,7 @@ plots <- map2(
     ggplot(df_heat, aes(x = Col, y = Row, fill = Value)) +
       geom_tile(color = "white") +
       geom_label(aes(label = Label), fill = "white", color = "black", size = 5, label.size = 0) +
-      scale_fill_viridis_c(limits = c(0.09, 0.2)) +  # Set the same color scale limits
+      scale_fill_viridis_c(limits = c(0.09, 0.21)) +  # Set the same color scale limits
       scale_y_reverse(breaks = 1:3, labels = c("Mañahak", "Dagge", "Hiteng kahlao")) +
       scale_x_continuous(
         breaks = 1:3,
@@ -421,7 +411,7 @@ plots <- map2(
 # Create a single legend using a dummy plot (use same limits and color scale)
 legend_plot <- ggplot(df_heat, aes(x = Col, y = Row, fill = Value)) +
   geom_tile() +
-  scale_fill_viridis_c(limits = c(0.09, 0.2)) +  # Match the scale limits to the others
+  scale_fill_viridis_c(limits = c(0.09, 0.21)) +  # Match the scale limits to the others
   theme_minimal() +
   theme(legend.position = "bottom")  # Add legend at the bottom
 
@@ -435,18 +425,6 @@ combined_plot
 
 
 #ggsave("~/Desktop/transition_plot.png", combined_plot, width=18, height=8, bg="transparent")
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -530,4 +508,64 @@ combined_plot <- (col_0 | col_10) +
 combined_plot
 
 # Save to file
-ggsave("~/Desktop/transition_plot.png", combined_plot, width = 10, height = 12, bg = "transparent")
+#ggsave("~/Desktop/combined_plot.png", combined_plot, width = 10, height = 12, bg = "transparent")
+
+
+
+
+#Pairwise plot showing values at 0 and 10% restocking
+
+extract_transitions <- function(m, scenario, restocking) {
+  df <- as.data.frame(Re(m)) %>%
+    mutate(Row = row_number()) %>%
+    pivot_longer(-Row, names_to = "Col", values_to = "Value") %>%
+    mutate(Col = as.numeric(gsub("V", "", Col))) %>%
+    filter((Row == 1 & Col == 2) | (Row == 2 & Col == 3) | (Row == 3 & Col == 3)) %>%
+    mutate(Transition = case_when(
+      Row == 1 & Col == 2 ~ "P21",
+      Row == 2 & Col == 3 ~ "P32",
+      Row == 3 & Col == 3 ~ "P33"
+    )) %>%
+    select(Transition, Value) %>%
+    mutate(Scenario = scenario, Restocking = restocking)
+  return(df)
+}
+
+# Apply to all rows
+df_transitions_all <- pmap_dfr(
+  list(m = all_results_long2$outer_products,
+       scenario = all_results_long2$scenario,
+       restocking = all_results_long2$Restocking_Percent),
+  extract_transitions
+)
+
+
+label_map <- c(
+  "f[H]==0*','~f[M]==0" = "A*':'~f[H]==0*','~f[M]==0",
+  "f[H]==0*','~f[M]==1" = "B*':'~f[H]==0*','~f[M]==1",
+  "f[H]==1*','~f[M]==0" = "C*':'~f[H]==1*','~f[M]==0",
+  "f[H]==1*','~f[M]==1" = "D*':'~f[H]==1*','~f[M]==1"
+)
+
+transition_plot <- ggplot(df_transitions_all, aes(x = Restocking, y = Value, color = Transition, group = Transition)) +
+  geom_point(size = 3) +
+  geom_line() +
+  facet_wrap(~Scenario, labeller = as_labeller(label_map, label_parsed)) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(
+    x = expression("Restocking (% " * B[0] * ")"),
+    y = "Transition sensitivity value"
+  ) +
+  theme_minimal()
+
+
+ggsave("~/Desktop/Fig3_transition_plot.png", transition_plot, width = 6, height = 6, bg = "transparent")
+
+
+
+
+
+
+
+
+

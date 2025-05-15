@@ -1,7 +1,9 @@
 library(tidyverse)
 library(viridis)
+library(ggpubr)
 
 # Parameters
+
 juvenile_mortality <- 0.9 / 2
 subadult_mortality <- 0.54 / 2
 adult_mortality <- 0.33 / 2
@@ -19,8 +21,8 @@ carrying_capacity <- 68
 time_steps <- 200
 
 # Parameter ranges
-fishing_effort_values <- seq(0, 0.5, by = 0.01)
-restocking_values <- c(0, 1, 3, 5.5) # Restocking scenarios
+fishing_effort_values <- seq(0, 0.5, by = 0.05)
+restocking_values <- seq(0, 5.5, by = 0.5) # Restocking scenarios
 
 #Current fishing for burn in
 F_current_instantaneous <- 0.09 
@@ -28,13 +30,6 @@ F_current_discrete <- (1 - exp(-F_current_instantaneous)) / 2
 F_current_discrete
 
 F_current_discrete_juv <- 0.01
-
-
-
-
-
-
-
 
 
 run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_time = 100) {
@@ -90,7 +85,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     # Store total population at each timestep
     total_population <- juvenile_population + subadult_population + adult_population
     population_over_time[t] <- total_population 
-
+    
   }
   
   # Calculate the average restocked dagge for the last 20 timesteps
@@ -100,13 +95,6 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     avg_restocked_dagge_last_20 = mean(restocked_dagge_values[(time_steps - 19):time_steps])
   ))
 }
-
-
-
-
-
-
-
 
 
 
@@ -157,128 +145,138 @@ for (restocked_juveniles in restocking_values) {
   all_results <- bind_rows(all_results, sensitivity_results)
 }
 
-ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Population)) +
-  geom_tile() +
-  facet_wrap(~Restocking_Percent)
 
 
-# Set Restocking_Percent as a factor with the desired order
-#all_results$Restocking_Percent <- factor(all_results$Restocking_Percent, 
- #                                        levels = c(0, 2, 5, 10))
+line_data <- all_results %>%
+  group_by(Restocking_Percent, F_adults, F_juveniles) %>%
+  summarize(
+    Avg_Relative_Population = mean(Relative_Population),
+    .groups = "drop"
+  ) %>%
+  mutate(Fishing_Scenario = paste0(F_adults, ", ", F_juveniles))
 
-# Create labels with the correct expressions for each Restocking_Percent
-all_results$Restocking_Label <- dplyr::case_when(
-  all_results$Restocking_Percent == 0 ~ "0*'%'~of~B[0]~(0~g/m^2)",
-  all_results$Restocking_Percent == 2 ~ "2*'%'~of~B[0]~(1~g/m^2)",
-  all_results$Restocking_Percent == 5 ~ "5*'%'~of~B[0]~(3~g/m^2)",
-  all_results$Restocking_Percent == 10 ~ "10*'%'~of~B[0]~(5.5~g/m^2)"
+
+
+
+#alternative plot
+
+
+#subset_fishing_scenarios <- c(
+#  "0, 0",
+#  "0, 0.5",
+#  "0.15, 0.3",
+#  "0.2, 0.2",
+#  "0.4, 0.4",
+#  "0.5, 0",
+#  "0.5, 0.5"
+#)
+
+subset_fishing_scenarios <- c(
+  "0, 0",
+  "0, 0.5",
+  "0.15, 0.25",
+  "0.2, 0.15",
+  "0.4, 0.4",
+  "0.5, 0",
+  "0.5, 0.5"
 )
 
-# Convert Restocking_Label to a factor and ensure its order aligns with Restocking_Percent
-all_results$Restocking_Label <- factor(all_results$Restocking_Label,
-                                       levels = c("0*'%'~of~B[0]~(0~g/m^2)", 
-                                                  "2*'%'~of~B[0]~(1~g/m^2)", 
-                                                  "5*'%'~of~B[0]~(3~g/m^2)",
-                                                  "10*'%'~of~B[0]~(5.5~g/m^2)"))
 
+# Convert the labels into numeric pairs, multiply by 2, and then convert back to string
+subset_fishing_scenarios_modified <- sapply(subset_fishing_scenarios, function(x) {
+  # Split the string into numbers, multiply by 2, and then rejoin as a string
+  nums <- as.numeric(strsplit(x, ",")[[1]]) * 2
+  paste(nums, collapse = ", ")
+})
 
-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
-  geom_tile() +
-  geom_contour(
-    aes(z = Relative_Population), 
-    breaks = 0.5, 
-    color = "black", 
-    linetype = "dashed", 
-    linewidth = 1
-  ) +
-  facet_wrap(~Restocking_Label, labeller = label_parsed) +
-  scale_fill_gradientn(
-    colors = c("#d73027", "#fee08b", "#1a9850"),
-    name = bquote("Biomass relative to"~B[0])
-  ) +
+# Prepare data for line plot, filtered by selected fishing scenarios
+line_data_subset <- line_data %>%
+  filter(Fishing_Scenario %in% subset_fishing_scenarios)
+
+# Create the plot for the subset
+figure5a <- ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relative_Population, 
+                                         color = Fishing_Scenario, linetype = Fishing_Scenario, 
+                                         group = Fishing_Scenario)) +
+  geom_line(size = 1.5) +
+  scale_color_manual(values = viridis::viridis(length(subset_fishing_scenarios)), 
+                     labels = subset_fishing_scenarios_modified,
+                     name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +
+  scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "twodash", "longdash", "F1"), 
+                        labels = subset_fishing_scenarios_modified,  # Use same labels as color
+                        name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +  
+  geom_hline(yintercept = 0.5, linetype = "solid", color = "red", linewidth = 1, alpha = 0.5) +  
   labs(
-    x = "Annual fishing effort on mañahak",
-    y = "Annual fishing effort on hiteng kahlao",
-    title = "Restocking amount"
+    x = bquote("Restocking (% of "~B[0]~")"),
+    y = bquote("Biomass relative to"~B[0]),
+    title = ""
   ) +
+  ggtitle("A.") +
   theme_minimal() +
   theme(
     text = element_text(size = 16),
-    plot.title = element_text(size = 16, hjust = 0.5),
+    plot.title = element_text(size = 16),
     axis.title = element_text(size = 16),
     axis.text = element_text(size = 14),
     legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12)
+    legend.text = element_text(size = 12),
+    legend.key.width = unit(1.5, "cm")  # Adjust legend width if needed
   )
 
 
-#Zooming in
 
-figure3<-ggplot(all_results %>% filter(F_adults > 0.3), aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
-  geom_tile() +
-  geom_contour(
-    aes(z = Relative_Population), 
-    breaks = 0.5, 
-    color = "black", 
-    linetype = "dashed", 
-    linewidth = 1
-  ) +
-  facet_wrap(~Restocking_Label, labeller = label_parsed) +
-  scale_fill_gradientn(
-    colors = c("#d73027", "#fee08b", "#1a9850"),
-    name = bquote("Biomass relative to"~B[0])
-  ) +
-  labs(
-    x = " Mañahak annual fishing mortality",
-    y = "Hiteng kahlao annual fishing mortality",
-    title = "Restocking amount"
-  ) +
-  theme_minimal() +
-  theme(
-    text = element_text(size = 16),
-    plot.title = element_text(size = 16, hjust = 0.5),
-    axis.title = element_text(size = 16),
-    axis.text = element_text(size = 14),
-    legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12)
+
+
+
+#Quantifying differences in fishing effort
+# Calculate sustainable fishing effort for adults
+sustainable_fishing_adults <- all_results %>%
+  filter(Relative_Population >= 0.5) %>%
+  group_by(Restocking_Percent) %>%
+  summarize(
+    Max_F_Adults = max(F_adults),
+    Max_F_Juveniles = max(F_juveniles), # Maximum sustainable fishing effort for adults
+    .groups = "drop"
   )
 
 
-#ggsave("~/Desktop/rabbitfish_figure3.png", figure3, width=10, height=8, bg="transparent")
+# Extract the baseline sustainable adult fishing effort when restocking is zero
+baseline_fishing_adults <- sustainable_fishing_adults %>%
+  filter(Restocking_Percent == 0) %>%
+  pull(Max_F_Adults)
 
-
-
-
-#trying a different version of the figure
-
-library(ggplot2)
-library(dplyr)
-
-# Filter to avoid zeroes that might confuse contouring
-contour_data <- all_results %>% 
-  filter(Relative_Population >= 0.01)
-
-figure3_alt <- ggplot(contour_data, aes(x = F_juveniles * 2, y = F_adults * 2)) +
-  geom_contour(
-    aes(z = Relative_Population, color = factor(Restocking_Percent), group = Restocking_Percent),
-    breaks = c(0.5),  # or use more like: breaks = c(0.25, 0.5, 0.75)
-    linewidth = 1
-  ) +
-  scale_color_viridis_d(name = bquote("Restocking ("~"% B"["0"]~")")) +
-  labs(
-    x = "Mañahak annual fishing mortality",
-    y = "Hiteng kahlao annual fishing mortality",
-    title = bquote("Maximum fishing mortality that sustains 50%"~B[0])
-  ) +
-  theme_minimal() +
-  theme(
-    text = element_text(size = 16),
-    plot.title = element_text(size = 16, hjust = 0.5),
-    axis.title = element_text(size = 16),
-    axis.text = element_text(size = 14),
-    legend.title = element_text(size = 14),
-    legend.text = element_text(size = 12)
+# Calculate the percentage increase in adult fishing effort for each restocking level
+sustainable_fishing_adults <- sustainable_fishing_adults %>%
+  mutate(
+    Percent_Increase_From_Zero = ifelse(
+      Restocking_Percent == 0, 
+      0, # No increase for restocking = 0
+      ((Max_F_Adults - baseline_fishing_adults) / baseline_fishing_adults) * 100
+    )
   )
 
-ggsave("~/Desktop/rabbitfish_figure3_alt.png", figure3_alt, width=7, height=6, bg="transparent")
+# Print the table
+print(sustainable_fishing_adults)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+source('Feb24_Eigenvalue_Analysis.R')
+
+figure5<-ggarrange(figure5a, figure5b, common.legend=TRUE)
+
+ggsave("~/Desktop/fig5_lineplot.png", figure5, width=8, height=6, bg="transparent")
+
+
+
 
