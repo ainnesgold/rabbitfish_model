@@ -89,24 +89,21 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      #0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
       - (restocking / carrying_capacity), 0, current_reproduction_rate,  # Juvenile production
       juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
     ), nrow = 3, byrow = TRUE)
     
-    # Compute the dominant eigenvalue (growth rate)
+    # Compute the dominant eigenvalue
     eigenvectors <- eigen(transition_matrix)$vectors
     principle_eigenvector <- eigenvectors[,1]
     eigenvectors_over_time[[t]] <- principle_eigenvector
     
     eigenvalues <- eigen(transition_matrix)$values
-    dominant_eigenvalue <- max(Re(eigenvalues))  # Take the real part
+    dominant_eigenvalue <- max(Re(eigenvalues)) 
     eigenvalues_over_time[t] <- dominant_eigenvalue
     
-    
     #Second matrix for reproductive contribution
-    #transition matrix for reproductive contribution
     transition_matrix_r <- matrix(c(
       - (restocking / carrying_capacity), juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + 
         (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0,
@@ -114,12 +111,10 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
       current_reproduction_rate, 0, adult_survival_rate * (1 - F_adults_current)
     ), nrow=3, byrow = TRUE)
     
-    # Compute the dominant eigenvalue (growth rate)
+    # Compute the dominant eigenvalue
     eigenvectors_r <- eigen(transition_matrix_r)$vectors
     principle_eigenvector_r <- eigenvectors_r[,1]
     eigenvectors_over_time_r[[t]] <- principle_eigenvector_r
-    
-    #transition sensitivity
     
   }
   
@@ -145,12 +140,6 @@ for (restocked_juveniles in restocking_values) {
       Avg_Eigenvalue = 0,
       Eigenvector = vector("list", n()),
       Eigenvector_r = vector("list", n()),
-      #Restocking_Percent = round((restocked_juveniles / reference_population$avg_population_last_20) * 100, 0),
-      #scenario = paste0(
-      #  "Restocking~'(% B0)':~", Restocking_Percent,
-      #  "*','~F[H]==", F_adults*2,
-      #  "*','~F[M]==", F_juveniles*2
-      #)
       scenario = paste0(
         "f[H]==", F_adults * 2,
         "*','~f[M]==", F_juveniles * 2
@@ -215,7 +204,6 @@ all_results_long <- all_results_long %>%
   ungroup()
 
 
-# Create custom facet labels using expressions
 all_results_long$F_adults <- factor(all_results_long$F_adults,
                                          levels = c(0, 0.25, 0.5),
                                          labels = c("italic(f)[H]==0", "italic(f)[H]==0.5", "italic(f)[H]==1")
@@ -251,15 +239,6 @@ stabledist
 
 
 
-#ggsave("~/Desktop/stabledist.png", stabledist, width=8, height=6, bg="transparent")
-
-
-
-
-
-
-
-
 
 
 #################### New stuff - transition sensitivity #############################
@@ -267,7 +246,6 @@ stabledist
 all_results_long2 <- all_results_long
 
 ##Example looking at one matrix
-# Get the first row's eigenvectors
 v1 <- unlist(all_results_long2$Eigenvector[[1]])
 v2 <- unlist(all_results_long2$Eigenvector_r[[1]])
 
@@ -294,14 +272,6 @@ all_results_long2$outer_products <- map2(all_results_long2$Eigenvector, all_resu
   v1_real <- Re(v1)
   v2_real <- Re(v2)
   
-  # Flip sign of the entire vector if any real part is negative
-  #if (any(v1_real < 0)) v1 <- -v1
-  #if (any(v2_real < 0)) v2 <- -v2
-  
-  # Optional: Normalize by sum or max value
-  # v1 <- v1 / sum(v1)
-  # v2 <- v2 / sum(v2)
-  
   # Outer product of eigenvectors
   mat <- v1 %*% t(v2)
   mat / sum(mat)  # Normalize so the sum equals 1
@@ -309,7 +279,7 @@ all_results_long2$outer_products <- map2(all_results_long2$Eigenvector, all_resu
 
 
 
-# Example: Visualize the first matrix (for example)
+# Example: Visualize the first matrix 
 m <- all_results_long2$outer_products[[1]]
 
 df_heat <- as.data.frame(Re(m)) %>%  # <--- take the real part
@@ -324,8 +294,6 @@ ggplot(df_heat, aes(x = Col, y = factor(Row), fill = Value)) +
   theme_minimal()
 
 ##only ones that are happening are P21, P32, P33
-# Visualize a specific outer product matrix
-# Visualize a specific outer product matrix
 m <- all_results_long2$outer_products[[1]]
 
 df_heat <- as.data.frame(Re(m)) %>%
@@ -390,7 +358,7 @@ plots <- map2(
     ggplot(df_heat, aes(x = Col, y = Row, fill = Value)) +
       geom_tile(color = "white") +
       geom_label(aes(label = Label), fill = "white", color = "black", size = 5, label.size = 0) +
-      scale_fill_viridis_c(limits = c(0.09, 0.21)) +  # Set the same color scale limits
+      scale_fill_viridis_c(limits = c(0.09, 0.21)) + 
       scale_y_reverse(breaks = 1:3, labels = c("Mañahak", "Dagge", "Hiteng kahlao")) +
       scale_x_continuous(
         breaks = 1:3,
@@ -399,7 +367,6 @@ plots <- map2(
       ) +
       labs(
         title = parse(text = scenario_name),
-        # Use the dynamic scenario name with bquote
         x = "Destination", y = "Source"
       ) +
       theme_minimal()
@@ -408,23 +375,21 @@ plots <- map2(
 
 
 
-# Create a single legend using a dummy plot (use same limits and color scale)
+# Create a single legend using a dummy plot
 legend_plot <- ggplot(df_heat, aes(x = Col, y = Row, fill = Value)) +
   geom_tile() +
-  scale_fill_viridis_c(limits = c(0.09, 0.21)) +  # Match the scale limits to the others
+  scale_fill_viridis_c(limits = c(0.09, 0.21)) + 
   theme_minimal() +
-  theme(legend.position = "bottom")  # Add legend at the bottom
+  theme(legend.position = "bottom")
 
 # Combine the plots with a common legend using patchwork
 combined_plot <- wrap_plots(plots[1:nrow(all_results_long2)]) + 
   plot_layout(guides = "collect") & 
   theme(legend.position = "bottom")
 
-# View the combined plot with the common legend
 combined_plot
 
 
-#ggsave("~/Desktop/transition_plot.png", combined_plot, width=18, height=8, bg="transparent")
 
 
 
@@ -487,7 +452,7 @@ title_0 <- ggplot() +
            label = "Restocking~('% B'[0]*'')*' = 0'", 
            parse = TRUE, size = 5) +
   theme_void() +
-  theme(plot.margin = margin(0, 0, -10, 0))  # reduce spacing below
+  theme(plot.margin = margin(0, 0, -10, 0))
 
 title_10 <- ggplot() + 
   annotate("text", x = 1, y = 1, 
@@ -507,8 +472,6 @@ combined_plot <- (col_0 | col_10) +
 
 combined_plot
 
-# Save to file
-#ggsave("~/Desktop/combined_plot.png", combined_plot, width = 10, height = 12, bg = "transparent")
 
 
 
@@ -547,6 +510,8 @@ label_map <- c(
   "f[H]==1*','~f[M]==1" = "D*':'~f[H]==1*','~f[M]==1"
 )
 
+
+##############  FIGURE 3 ######################
 transition_plot <- ggplot(df_transitions_all, aes(x = Restocking, y = Value, color = Transition, group = Transition)) +
   geom_point(size = 3) +
   geom_line() +

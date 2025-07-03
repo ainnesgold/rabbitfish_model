@@ -22,7 +22,7 @@ time_steps <- 200
 
 # Parameter ranges
 fishing_effort_values <- seq(0, 0.5, by = 0.05)
-restocking_values <- seq(0, 5.5, by = 0.5) # Restocking scenarios
+restocking_values <- seq(0, 5.5, by = 0.5) 
 
 #Current fishing for burn in
 F_current_instantaneous <- 0.09 
@@ -37,14 +37,13 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
   subadult_population <- 10
   adult_population <- 10
   
-  # Store population over time
+
   population_over_time <- numeric(time_steps)
-  restocked_dagge_values <- numeric(time_steps)  # To store restocked dagge values
+  restocked_dagge_values <- numeric(time_steps)  
   
   for (t in 1:time_steps) {
     if (t <= burn_in_time) {
       # Burn-in period with zero fishing and zero restocking
-      # Try burn in with "current" fishing
       F_adults_current <- F_current_discrete #0
       F_juveniles_current <- F_current_discrete_juv #0
       restocking <- 0
@@ -73,7 +72,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults - restocking)
       restocked_dagge <- restocking + (2.35 * (1 - restocking / carrying_capacity))
       
-      restocked_dagge_values[t] <- restocked_dagge  # Store restocked dagge value
+      restocked_dagge_values[t] <- restocked_dagge 
       subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + restocked_dagge)
     } else {
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
@@ -88,8 +87,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     
   }
   
-  # Calculate the average restocked dagge for the last 20 timesteps
-  # Return the average of the last 20 timesteps and the average restocked dagge
+
   return(list(
     avg_population_last_20 = mean(population_over_time[(time_steps - 19):time_steps]),
     avg_restocked_dagge_last_20 = mean(restocked_dagge_values[(time_steps - 19):time_steps])
@@ -103,17 +101,15 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
 all_results <- data.frame()
 
 for (restocked_juveniles in restocking_values) {
-  # Create a dataframe to store results for this restocking value
   sensitivity_results <- expand.grid(
     F_adults = fishing_effort_values,
     F_juveniles = fishing_effort_values
   ) %>%
     mutate(
       Avg_Total_Population = 0,
-      Avg_Restocked_Dagge = 0  # New column for average restocked dagge
+      Avg_Restocked_Dagge = 0  
     )
   
-  # Reference population with zero fishing effort
   reference_population <- run_simulation(
     F_adults = 0,
     F_juveniles = 0,
@@ -158,19 +154,6 @@ line_data <- all_results %>%
 
 
 
-#alternative plot
-
-
-#subset_fishing_scenarios <- c(
-#  "0, 0",
-#  "0, 0.5",
-#  "0.15, 0.3",
-#  "0.2, 0.2",
-#  "0.4, 0.4",
-#  "0.5, 0",
-#  "0.5, 0.5"
-#)
-
 subset_fishing_scenarios <- c(
   "0, 0",
   "0, 0.5",
@@ -182,18 +165,14 @@ subset_fishing_scenarios <- c(
 )
 
 
-# Convert the labels into numeric pairs, multiply by 2, and then convert back to string
 subset_fishing_scenarios_modified <- sapply(subset_fishing_scenarios, function(x) {
-  # Split the string into numbers, multiply by 2, and then rejoin as a string
   nums <- as.numeric(strsplit(x, ",")[[1]]) * 2
   paste(nums, collapse = ", ")
 })
 
-# Prepare data for line plot, filtered by selected fishing scenarios
 line_data_subset <- line_data %>%
   filter(Fishing_Scenario %in% subset_fishing_scenarios)
 
-# Create the plot for the subset
 figure5a <- ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relative_Population, 
                                          color = Fishing_Scenario, linetype = Fishing_Scenario, 
                                          group = Fishing_Scenario)) +
@@ -219,7 +198,7 @@ figure5a <- ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relativ
     axis.text = element_text(size = 14),
     legend.title = element_text(size = 14),
     legend.text = element_text(size = 12),
-    legend.key.width = unit(1.5, "cm")  # Adjust legend width if needed
+    legend.key.width = unit(1.5, "cm") 
   )
 
 
@@ -228,43 +207,31 @@ figure5a <- ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relativ
 
 
 #Quantifying differences in fishing effort
-# Calculate sustainable fishing effort for adults
 sustainable_fishing_adults <- all_results %>%
   filter(Relative_Population >= 0.5) %>%
   group_by(Restocking_Percent) %>%
   summarize(
     Max_F_Adults = max(F_adults),
-    Max_F_Juveniles = max(F_juveniles), # Maximum sustainable fishing effort for adults
+    Max_F_Juveniles = max(F_juveniles), 
     .groups = "drop"
   )
 
 
-# Extract the baseline sustainable adult fishing effort when restocking is zero
 baseline_fishing_adults <- sustainable_fishing_adults %>%
   filter(Restocking_Percent == 0) %>%
   pull(Max_F_Adults)
 
-# Calculate the percentage increase in adult fishing effort for each restocking level
 sustainable_fishing_adults <- sustainable_fishing_adults %>%
   mutate(
     Percent_Increase_From_Zero = ifelse(
       Restocking_Percent == 0, 
-      0, # No increase for restocking = 0
+      0, 
       ((Max_F_Adults - baseline_fishing_adults) / baseline_fishing_adults) * 100
     )
   )
 
-# Print the table
+
 print(sustainable_fishing_adults)
-
-
-
-
-
-
-
-
-
 
 
 

@@ -143,59 +143,6 @@ rr_biomass <- ggplot(all_results, aes(x = reproduction_rate, y = restocking, fil
   theme_minimal()
 
 
-# #relative version - relative to same repduction rate, no restocking
-# 
-# # Step 1: Join each row with the biomass at restocking = 0 for the same grouping
-# all_rel <- all_results %>%
-#   group_by(reproduction_rate, F_simulation_juv, F_simulation_adult) %>%
-#   mutate(baseline_biomass = biomass[restocking == 0],
-#          relative_biomass = biomass / baseline_biomass) %>%
-#   ungroup()
-# 
-# # Step 2: Plot the relative biomass
-# rr_biomass_rel1 <- ggplot(all_rel, aes(x = reproduction_rate, y = restocking, fill = relative_biomass)) +
-#   geom_tile() +
-#   scale_fill_viridis_c() +
-#   labs(x = "Reproduction rate",
-#        y = expression("Restocking (g/m"^2*")"),
-#        fill = "Relative biomass",
-#        caption = "Biomass relative to restocking = 0 for the corresponding reproduction rate"
-#   ) +
-#   facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = label_parsed) +
-#   theme_minimal()
-# 
-# #ggsave("~/Desktop/rr_biomass_rel1.png", rr_biomass_rel1, width=6, height=4, bg="transparent")
-# 
-# 
-# #other relative version where they are rall relative to restocking = 0 and reproduction = 0
-# 
-# # Step 1: Get baseline where restocking == 0 and reproduction_rate == 0
-# baseline <- all_results %>%
-#   filter(restocking == 0, reproduction_rate == 0) %>%
-#   select(F_simulation_juv, F_simulation_adult, baseline_biomass = biomass)
-# 
-# # Step 2: Join baseline to all data based on facet groupings
-# all_rel_base00 <- all_results %>%
-#   left_join(baseline, by = c("F_simulation_juv", "F_simulation_adult")) %>%
-#   mutate(relative_biomass = biomass / baseline_biomass)
-# 
-# # Step 3: Plot
-# rr_biomass_rel2<- ggplot(all_rel_base00, aes(x = reproduction_rate, y = restocking, fill = relative_biomass)) +
-#   geom_tile() +
-#   scale_fill_viridis_c() +
-#   labs(x = "Reproduction rate",
-#        y = expression("Restocking (g/m"^2*")"),
-#        fill = "Relative biomass",
-#        caption = "Biomass relative to restocking = 0, reproduction = 0") +
-#   facet_grid(F_simulation_juv ~ F_simulation_adult, labeller = label_parsed) +
-#   theme_minimal()
-
-#ggsave("~/Desktop/rr_biomass_rel2.png", rr_biomass_rel2, width=6, height=4, bg="transparent")
-
-
-
-
-
 
 # Eigen plot - stability
 rr_eigen <- ggplot(all_results, aes(x = reproduction_rate, y = restocking, fill = eigenvalue)) +

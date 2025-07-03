@@ -11,13 +11,13 @@ juvenile_survival_rate <- 1 - juvenile_mortality
 subadult_survival_rate <- 1 - subadult_mortality
 adult_survival_rate <-  1 - adult_mortality
 
-juvenile_to_subadult_rate <- 1 #0.2 # Probability of a juvenile transitioning to subadult
-subadult_to_adult_rate <- 0.5 #0.2   # Probability of a subadult transitioning to adult
+juvenile_to_subadult_rate <- 1 
+subadult_to_adult_rate <- 0.5 
 
-reproduction_rate <- 2 #0.19
-reproduction_rate_2 <- 1.5 #0.03
+reproduction_rate <- 2 
+reproduction_rate_2 <- 1.5
 
-carrying_capacity <- 68 #g/m2, in range of Friedlander and Sandin studies
+carrying_capacity <- 68 
 
 #restocking
 restocked_juveniles <- 0
@@ -27,10 +27,10 @@ F_instantaneous <- 0.09
 F_discrete <- 1 - exp(-F_instantaneous)
 F_discrete
 
-juvenile_fishing_rate <- 0.01 #(0.09/4)/2   # Fraction of juvenile population caught by fishing per time step
-adult_fishing_rate <- F_discrete/2     # Fraction of adult population caught by fishing per time step
+juvenile_fishing_rate <- 0.01 
+adult_fishing_rate <- F_discrete/2    
 
-# Initial population sizes in g/m2 - made up values
+# Initial population sizes
 juvenile_population <- 10
 subadult_population <- 10
 adult_population <- 10
@@ -86,14 +86,6 @@ for (t in 2:time_steps) {
   total_population_over_time[t] <- total_population
 }
 
-# Plot the results
-#plot(1:time_steps, juvenile_population_over_time, type = "o", col = "blue", 
-#     ylim = c(0, max(juvenile_population_over_time, subadult_population_over_time, adult_population_over_time, total_population_over_time)), 
-#     xlab = "Time", ylab = "Population Size") #main = "Stage-Structured Fish Population Model with Fishing & Restocking"
-#lines(1:time_steps, subadult_population_over_time, type = "o", col = "green")
-#lines(1:time_steps, adult_population_over_time, type = "o", col = "red")
-#lines(1:time_steps, total_population_over_time, type = "o", col = "black")
-#legend("topright", legend = c("Juveniles", "Subadults", "Adults", "Total"), col = c("blue", "green", "red", "black"), lty = 1)
 
 
 population_data <- data.frame(
@@ -111,7 +103,6 @@ burnin_raw <- ggplot(population_data %>% filter(Stage != "Total"), aes(x = Time/
     y = bquote("Fish biomass"~(g/m^2)),
     color = "Stage" ,
     title = "A."
-    #title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
   ) +
   scale_color_manual(
     values = c("#E69F00", "#56B4E9", "#009E73"),
@@ -131,23 +122,19 @@ burnin_raw <- ggplot(population_data %>% filter(Stage != "Total"), aes(x = Time/
 
 
 #Relative to total
-# Preprocess the data: add a fraction column
 population_data_relative <- population_data %>%
   group_by(Time) %>%
   mutate(Fraction = Population / Population[Stage == "Total"])
 
 # Create the plot
 burnin_rel <- ggplot(population_data_relative %>% filter(Stage != "Total"), aes(x = Time/2, y = Fraction, color = Stage)) +
-  # Transparent lines for raw data
   geom_line(alpha = 0.3) +
-  # Solid best fit lines for each stage
   geom_smooth(se = FALSE, size = 1) +
   labs(
     x = "Years",
     y = "Fish biomass (fraction of total population)",
     color = "Stage",
     title = "B."
-    #title = "Burn in period: No restocking, \nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year"
   ) +
   scale_color_manual(
     values = c("#E69F00", "#56B4E9", "#009E73"), # Okabe-Ito palette
@@ -169,12 +156,4 @@ burnin
 
 ggsave("~/Desktop/figureS1_burnin", burnin, width=8, height=6, bg="transparent")
 
-# Annotate with a larger title
-#annotate_figure(
- # burnin,
-#  top = text_grob(
-#    "Burn in Period: No Restocking\nF hiteng kahlao = 0.086/year, F mañahak = 0.02/year",
-#    size = 16, # Adjust size as needed
-#    face = "bold" # Optional: Make the text bold
-#  )
-#)
+

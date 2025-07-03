@@ -2,7 +2,7 @@ library(tidyverse)
 library(viridis)
 
 # Parameters
-burn_in_time <- 100  # Define burn-in period of 100 timesteps
+burn_in_time <- 100 
 time_steps <- 200 
 
 #mortality
@@ -24,8 +24,6 @@ time_steps <- 500
 
 # Parameter ranges
 fishing_effort_values <- seq(0, 0.5, by = 0.01)
-
-# Define the range of restocking mortality rates
 restocking_mortality_rates <- c(0, 0.4, 0.8, 1)
 
 #restocking scenario
@@ -43,14 +41,13 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restockin
   subadult_population <- 10
   adult_population <- 10
   
-  # Store population over time
+
   population_over_time <- numeric(time_steps)
   eigenvalues_over_time <- numeric(time_steps) 
   
   for (t in 1:time_steps) {
     if (t <= burn_in_time) {
       # Burn-in period with zero fishing and zero restocking
-      # Try burn in with "current" fishing
       F_adults_current <- F_current_discrete #0
       F_juveniles_current <- F_current_discrete_juv #0
       restocking <- 0
@@ -78,8 +75,6 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restockin
     if (t %% 2 == 0) {
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults - restocking)
       restocked_dagge <- restocking + (2.35 * (1 - restocking / carrying_capacity))
-      
-      #restocked_dagge_values[t] <- restocked_dagge  # Store restocked dagge value
       subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + (restocked_dagge* (1 - restocking_mortality_rate)))
     } else {
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
@@ -88,19 +83,19 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restockin
     
     adult_population <- max(0, new_adults + surviving_adults)
     
-    # Store total population at each timestep
+
     total_population <- juvenile_population + subadult_population + adult_population
     population_over_time[t] <- total_population 
-    # Construct the population transition matrix
+
     transition_matrix <- matrix(c(
       - (restocking / carrying_capacity), 0, current_reproduction_rate,  # Juvenile production
       juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
     ), nrow = 3, byrow = TRUE)
     
-    # Compute the dominant eigenvalue (growth rate)
+
     eigenvalues <- eigen(transition_matrix)$values
-    dominant_eigenvalue <- max(Re(eigenvalues))  # Take the real part
+    dominant_eigenvalue <- max(Re(eigenvalues)) 
     eigenvalues_over_time[t] <- dominant_eigenvalue
     
   }
@@ -130,17 +125,17 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, restockin
 all_results <- data.frame()
 
 for (restocking_mortality_rate in restocking_mortality_rates) {
-  # Create a dataframe to store results for this restocking mortality rate
+
   sensitivity_results <- expand.grid(
     F_adults = fishing_effort_values,
     F_juveniles = fishing_effort_values
   ) %>%
     mutate(
       Avg_Total_Population = 0,
-      Avg_Eigenvalue = 0  # New column for eigenvalues
+      Avg_Eigenvalue = 0
     )
   
-  # Reference population with zero fishing effort
+
   reference_population <- run_simulation(
     F_adults = 0,
     F_juveniles = 0,
@@ -171,14 +166,11 @@ for (restocking_mortality_rate in restocking_mortality_rates) {
   all_results <- bind_rows(all_results, sensitivity_results)
 }
 
-# Custom labeller function for restocking mortality
 restocking_labeller <- function(values) {
   paste("Restocked M =", values)
 }
 
 
-
-# Update the code to use this custom labeller
 figure6<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
   geom_tile() +
   geom_contour(
@@ -193,7 +185,7 @@ figure6<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relat
     labeller = labeller(Restocking_Mortality = function(values) restocking_labeller(values))
   ) +
   scale_fill_gradientn(
-    colors = c("#d73027", "#fee08b", "#1a9850"), # Color-blind friendly palette
+    colors = c("#d73027", "#fee08b", "#1a9850"), 
     name = bquote("Biomass relative to"~B[0]),
   ) +
   labs(
@@ -253,12 +245,6 @@ fig6eigen<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Avg
 
 #COMBO version
 
-
-# Custom labeller function for restocking mortality
-
-
-
-# Update the code to use this custom labeller
 M_biomass<-ggplot(all_results, aes(x = F_juveniles*2, y = F_adults*2, fill = Relative_Population)) +
   geom_tile() +
   geom_contour(

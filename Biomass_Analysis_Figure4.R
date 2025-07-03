@@ -44,12 +44,11 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
   
   # Store population over time
   population_over_time <- numeric(time_steps)
-  restocked_dagge_values <- numeric(time_steps)  # To store restocked dagge values
+  restocked_dagge_values <- numeric(time_steps) 
   
   for (t in 1:time_steps) {
     if (t <= burn_in_time) {
       # Burn-in period with zero fishing and zero restocking
-      # Try burn in with "current" fishing
       F_adults_current <- F_current_discrete #0
       F_juveniles_current <- F_current_discrete_juv #0
       restocking <- 0
@@ -94,7 +93,6 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
   }
   
   # Calculate the average restocked dagge for the last 20 timesteps
-  # Return the average of the last 20 timesteps and the average restocked dagge
   return(list(
     avg_population_last_20 = mean(population_over_time[(time_steps - 19):time_steps]),
     avg_restocked_dagge_last_20 = mean(restocked_dagge_values[(time_steps - 19):time_steps])
@@ -115,14 +113,13 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
 all_results <- data.frame()
 
 for (restocked_juveniles in restocking_values) {
-  # Create a dataframe to store results for this restocking value
   sensitivity_results <- expand.grid(
     F_adults = fishing_effort_values,
     F_juveniles = fishing_effort_values
   ) %>%
     mutate(
       Avg_Total_Population = 0,
-      Avg_Restocked_Dagge = 0  # New column for average restocked dagge
+      Avg_Restocked_Dagge = 0 
     )
   
   # Reference population with zero fishing effort
@@ -162,9 +159,6 @@ ggplot(all_results, aes(x = F_juveniles, y = F_adults, fill = Relative_Populatio
   facet_wrap(~Restocking_Percent)
 
 
-# Set Restocking_Percent as a factor with the desired order
-#all_results$Restocking_Percent <- factor(all_results$Restocking_Percent, 
- #                                        levels = c(0, 2, 5, 10))
 
 all_results$Restocking_Label <- dplyr::case_when(
   all_results$Restocking_Percent == 0 ~ "A: 0*'%'~of~B[0]~(0~g/m^2)",
@@ -247,36 +241,4 @@ figure4<-ggplot(all_results %>% filter(F_adults > 0.3), aes(x = F_juveniles*2, y
 ggsave("~/Desktop/Fig4_Heatmap.png", figure4, width=10, height=8, bg="transparent")
 
 
-
-
-#trying a different version of the figure
-
-
-# Filter to avoid zeroes that might confuse contouring
-#contour_data <- all_results %>% 
-#  filter(Relative_Population >= 0.01)
-
-#figure3_alt <- ggplot(contour_data, aes(x = F_juveniles * 2, y = F_adults * 2)) +
-#  geom_contour(
-#    aes(z = Relative_Population, color = factor(Restocking_Percent), group = Restocking_Percent),
-#    breaks = c(0.5),  # or use more like: breaks = c(0.25, 0.5, 0.75)
-#    linewidth = 1
-#  ) +
-#  scale_color_viridis_d(name = bquote("Restocking ("~"% B"["0"]~")")) +
-#  labs(
-#    x = "Mañahak annual fishing mortality",
-#    y = "Hiteng kahlao annual fishing mortality",
-#    title = bquote("Maximum fishing mortality that sustains 50%"~B[0])
-#  ) +
-#  theme_minimal() +
-#  theme(
-#    text = element_text(size = 16),
-#    plot.title = element_text(size = 16, hjust = 0.5),
-#    axis.title = element_text(size = 16),
-#    axis.text = element_text(size = 14),
-#    legend.title = element_text(size = 14),
-#    legend.text = element_text(size = 12)
-#  )
-
-#ggsave("~/Desktop/rabbitfish_figure3_alt.png", figure3_alt, width=7, height=6, bg="transparent")
 

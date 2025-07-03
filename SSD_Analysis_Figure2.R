@@ -39,15 +39,6 @@ F_current_discrete_juv <- 0.01
 
 
 
-
-
-
-
-
-
-
-
-
 run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_time = 100) {
   juvenile_population <- 10
   subadult_population <- 10
@@ -84,7 +75,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults - restocking)
       restocked_dagge <- restocking + (2.35 * (1 - restocking / carrying_capacity))
       
-      restocked_dagge_values[t] <- restocked_dagge  # Store restocked dagge value
+      restocked_dagge_values[t] <- restocked_dagge  
       subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + restocked_dagge)
     } else {
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
@@ -100,7 +91,6 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      #0, 0, current_reproduction_rate - (restocking / carrying_capacity),  # Juvenile production
       - (restocking / carrying_capacity), 0, current_reproduction_rate,  # Juvenile production
       juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
       0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
@@ -108,12 +98,11 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     
     # Compute the dominant eigenvalue (growth rate)
     eigenvalues <- eigen(transition_matrix)$values
-    dominant_eigenvalue <- max(Re(eigenvalues))  # Take the real part
+    dominant_eigenvalue <- max(Re(eigenvalues)) 
     eigenvalues_over_time[t] <- dominant_eigenvalue
     
     
     #Second matrix for reproductive contribution
-    #transition matrix for reproductive contribution
     transition_matrix_r <- matrix(c(
       - (restocking / carrying_capacity), juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + 
         (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0,
@@ -121,7 +110,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
       current_reproduction_rate, 0, adult_survival_rate * (1 - F_adults_current)
     ), nrow=3, byrow = TRUE)
     
-    # Compute the dominant eigenvalue (growth rate)
+    # Compute the dominant eigenvalue 
     eigenvectors <- eigen(transition_matrix_r)$vectors
     principle_eigenvector <- eigenvectors[,1]
     eigenvectors_over_time[[t]] <- principle_eigenvector
@@ -131,7 +120,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
   
   return(list(
     avg_population_last_20 = mean(population_over_time[(time_steps - 19):time_steps]),
-    avg_eigenvalue_last_20 = mean(eigenvalues_over_time[(time_steps - 19):time_steps]),  # Average last 20 timesteps
+    avg_eigenvalue_last_20 = mean(eigenvalues_over_time[(time_steps - 19):time_steps]),  
     end_eigenvector = eigenvectors_over_time[[time_steps]]
   ))
 }
