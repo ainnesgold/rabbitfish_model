@@ -181,7 +181,7 @@ figure5a <- ggplot(line_data_subset, aes(x = Restocking_Percent, y = Avg_Relativ
                      labels = subset_fishing_scenarios_modified,
                      name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +
   scale_linetype_manual(values = c("solid", "dashed", "dotted", "dotdash", "twodash", "longdash", "F1"), 
-                        labels = subset_fishing_scenarios_modified,  # Use same labels as color
+                        labels = subset_fishing_scenarios_modified,  
                         name = "Annual fishing mortality of \nhiteng kahlao and mañahak") +  
   geom_hline(yintercept = 0.5, linetype = "solid", color = "red", linewidth = 1, alpha = 0.5) +  
   labs(

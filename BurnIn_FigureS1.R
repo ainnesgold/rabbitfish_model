@@ -137,7 +137,7 @@ burnin_rel <- ggplot(population_data_relative %>% filter(Stage != "Total"), aes(
     title = "B."
   ) +
   scale_color_manual(
-    values = c("#E69F00", "#56B4E9", "#009E73"), # Okabe-Ito palette
+    values = c("#E69F00", "#56B4E9", "#009E73"), 
     labels = c("Hiteng kahlao (adults)", "Mañahak (juveniles)", "Dagge (subadults)")
   ) +
   theme_minimal() +

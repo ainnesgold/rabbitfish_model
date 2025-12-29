@@ -73,7 +73,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults - restocking)
       restocked_dagge <- restocking + (2.35 * (1 - restocking / carrying_capacity))
       
-      restocked_dagge_values[t] <- restocked_dagge  # Store restocked dagge value
+      restocked_dagge_values[t] <- restocked_dagge
       subadult_population <- max(0, new_subadults + surviving_subadults - new_adults + restocked_dagge)
     } else {
       juvenile_population <- max(0, new_juveniles + surviving_juveniles - new_subadults)
@@ -89,9 +89,9 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
     
     # Construct the population transition matrix
     transition_matrix <- matrix(c(
-      - (restocking / carrying_capacity), 0, current_reproduction_rate,  # Juvenile production
+      - (restocking / carrying_capacity), 0, current_reproduction_rate,  
       juvenile_survival_rate * (1 - F_juveniles_current) * juvenile_to_subadult_rate + (restocking + (2.35 * (1 - restocking / carrying_capacity))) / carrying_capacity, 0, 0,  # Juvenile survival to subadult
-      0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current)  # Subadult survival & transition
+      0, subadult_survival_rate * subadult_to_adult_rate, adult_survival_rate * (1 - F_adults_current) 
     ), nrow = 3, byrow = TRUE)
     
     # Compute the dominant eigenvalue
@@ -120,7 +120,7 @@ run_simulation <- function(F_adults, F_juveniles, restocked_juveniles, burn_in_t
   
   return(list(
     avg_population_last_20 = mean(population_over_time[(time_steps - 19):time_steps]),
-    avg_eigenvalue_last_20 = mean(eigenvalues_over_time[(time_steps - 19):time_steps]),  # Average last 20 timesteps
+    avg_eigenvalue_last_20 = mean(eigenvalues_over_time[(time_steps - 19):time_steps]),  
     end_eigenvector = eigenvectors_over_time[[time_steps]],
     end_eigenvector_r = eigenvectors_over_time_r[[time_steps]]
   ))
